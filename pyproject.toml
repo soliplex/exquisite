@@ -1,0 +1,26 @@
+[project]
+name = "exquisite"
+version = "0.1.0"
+description = "Corpus management for RAG databases: manifests, worksheets, and evaluation labels"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Tres Seaver", email = "tseaver@palladion.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pyyaml",
+]
+
+[project.scripts]
+exquisite = "exquisite:main"
+
+[build-system]
+requires = ["uv_build>=0.11.1,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
