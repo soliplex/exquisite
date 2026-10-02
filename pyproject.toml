@@ -1,6 +1,6 @@
 [project]
 name = "exquisite"
-version = "0.1.0"
+version = "0.1"
 description = "Corpus management for RAG databases: manifests, worksheets, and evaluation labels"
 readme = "README.md"
 license = "MIT"
