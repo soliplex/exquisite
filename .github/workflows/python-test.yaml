@@ -1,0 +1,75 @@
+name: Python tests/coverage
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pyproject.toml'
+      - 'src/exquisite/**'
+      - 'tests/**'
+      - '.github/workflows/python-test.yaml'
+      - 'uv.lock'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'pyproject.toml'
+      - 'src/exquisite/**'
+      - 'tests/**'
+      - '.github/workflows/python-test.yaml'
+      - 'uv.lock'
+  workflow_dispatch:
+
+jobs:
+  test-exquisite:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: true
+      matrix:
+        # Linux only for now:  paths are rendered with `str(...)`, so on
+        # Windows they would carry backslashes, into CLI output and into the
+        # worksheets themselves.  Add `windows-latest` once that is fixed.
+        os: [ubuntu-latest]
+        python-version: ["3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --frozen --group dev
+
+      # The 100% coverage gate is in `addopts` (see `pyproject.toml`).
+      - name: Run unit tests with coverage
+        run: |
+          set -o pipefail
+          uv run pytest 2>&1 | tee unit-tests.log
+
+      # Slack notification lives in 'ci-failure-notify.yaml', which only
+      # links to this run, so record what failed here.
+      - name: Summarize failures
+        if: failure()
+        run: |
+          {
+            echo "## ${{ matrix.os }}, Python ${{ matrix.python-version }} failed"
+            echo
+            for log in unit-tests.log; do
+              [ -f "$log" ] || continue
+              echo "<details><summary>$log (last 50 lines)</summary>"
+              echo
+              echo '```'
+              tail -n 50 "$log"
+              echo '```'
+              echo
+              echo "</details>"
+              echo
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
