@@ -1,0 +1,245 @@
+{
+  "$schema": "https://schema.pydantic.dev/evals/dataset.json",
+  "cases": [
+    {
+      "inputs": "Which request methods defined by the HTTP semantics specification are safe?",
+      "expected_output": "GET, HEAD, OPTIONS, and TRACE.",
+      "metadata": {
+        "uuid": "d9361971-6d42-546a-9db5-f8b920e89e94",
+        "question_number": "1",
+        "type": "qa",
+        "reference": "RFC 9110, Section 9.2.1"
+      }
+    },
+    {
+      "inputs": "What does the 404 (Not Found) status code indicate?",
+      "expected_output": "That the origin server did not find a current representation for the target resource, or is not willing to disclose that one exists.",
+      "metadata": {
+        "uuid": "53d58cab-7baf-5f73-aa5f-57338fcdde7c",
+        "question_number": "2",
+        "type": "qa",
+        "reference": "RFC9110 Section 15.5.5"
+      }
+    },
+    {
+      "inputs": "Which request methods defined by the HTTP semantics specification are idempotent?",
+      "expected_output": "PUT, DELETE, and the safe request methods.",
+      "metadata": {
+        "uuid": "19be0e34-2559-5bb3-87ec-6070c4e98acb",
+        "question_number": "3",
+        "type": "qa",
+        "reference": "STD 97, Section 9.2.2"
+      }
+    },
+    {
+      "inputs": "What TCP port does an https URI default to when its port is empty or not given?",
+      "expected_output": "443.",
+      "metadata": {
+        "uuid": "49cbdfa8-71b7-59c1-be25-02efa0b82b6f",
+        "question_number": "4",
+        "type": "qa",
+        "reference": "RFC 9110, Section 4.2.2"
+      }
+    },
+    {
+      "inputs": "What is the default port for HTTP over TLS on a TCP/IP connection?",
+      "expected_output": "443.",
+      "metadata": {
+        "uuid": "1c056cc4-81b0-53f6-8579-8b06a63a073d",
+        "question_number": "5",
+        "type": "qa",
+        "reference": "RFC 2818, Section 2.3"
+      }
+    },
+    {
+      "inputs": "Which request methods defined by the HTTP/1.1 semantics specification are safe?",
+      "expected_output": "GET, HEAD, OPTIONS, and TRACE.",
+      "metadata": {
+        "uuid": "1a4ed61f-6264-5e10-9129-413a45c33fd2",
+        "question_number": "6",
+        "type": "qa",
+        "reference": "RFC 7231, Section 4.2.1"
+      }
+    },
+    {
+      "inputs": "What does the 404 (Not Found) status code indicate?",
+      "expected_output": "That the origin server did not find a current representation for the target resource, or is not willing to disclose that one exists.",
+      "metadata": {
+        "uuid": "f1f5de6a-8150-5d4d-9337-29707af35e00",
+        "question_number": "7",
+        "type": "qa",
+        "reference": "RFC 7231, Section 6.5.4"
+      }
+    },
+    {
+      "inputs": "What does the 404 Not Found status code indicate?",
+      "expected_output": "That the server has not found anything matching the Request-URI.",
+      "metadata": {
+        "uuid": "daf28731-08dd-5a0c-a37e-341bc9e31baf",
+        "question_number": "8",
+        "type": "qa",
+        "reference": "RFC 2616, Section 10.4.5"
+      }
+    },
+    {
+      "inputs": "What does the 404 Not Found status code indicate?",
+      "expected_output": "That the server has not found anything matching the Request-URI.",
+      "metadata": {
+        "uuid": "7d12e7ad-c87a-59cf-8438-5fc8c5bae1b7",
+        "question_number": "9",
+        "type": "qa",
+        "reference": "RFC 2068, Section 10.4.5"
+      }
+    },
+    {
+      "inputs": "What is the Cache-Control general-header field used for?",
+      "expected_output": "To specify directives that must be obeyed by all caching mechanisms along the request/response chain.",
+      "metadata": {
+        "uuid": "9e718781-7dce-5e7b-9f26-ffc7f8a57d18",
+        "question_number": "10",
+        "type": "qa",
+        "reference": "RFC 2616, Section 14.9"
+      }
+    },
+    {
+      "inputs": "Are HTTP/1.1 connections persistent by default?",
+      "expected_output": "Yes:  persistent connections are the default behavior of any HTTP connection.",
+      "metadata": {
+        "uuid": "035bf0f4-f41f-5a47-91a5-effe2b6ea3cd",
+        "question_number": "11",
+        "type": "qa",
+        "reference": "RFC 2616, Section 8.1.2"
+      }
+    },
+    {
+      "inputs": "What is the Cache-Control header field used for?",
+      "expected_output": "To specify directives for caches along the request/response chain.",
+      "metadata": {
+        "uuid": "c6a94b29-983d-54a3-b902-2e008c5314aa",
+        "question_number": "12",
+        "type": "qa",
+        "reference": "RFC 7234, Section 5.2"
+      }
+    },
+    {
+      "inputs": "What is the Cache-Control header field used for?",
+      "expected_output": "To list directives for caches along the request/response chain.",
+      "metadata": {
+        "uuid": "98ad7bbc-72d2-5a2f-920a-fb8cd6d734d7",
+        "question_number": "13",
+        "type": "qa",
+        "reference": "RFC 9111, Section 5.2"
+      }
+    },
+    {
+      "inputs": "Along what path do Cache-Control directives apply?",
+      "expected_output": "The request/response chain.",
+      "metadata": {
+        "uuid": "6aa0322e-a700-5b65-8e71-18aa40b07300",
+        "question_number": "14",
+        "type": "qa",
+        "reference": "STD 98, Section 5.2"
+      }
+    },
+    {
+      "inputs": "What does HTTP/1.1 default to, as regards connections?",
+      "expected_output": "Persistent connections, allowing multiple requests and responses on a single connection.",
+      "metadata": {
+        "uuid": "db1a6042-de1b-582d-b766-6a46639611cc",
+        "question_number": "15",
+        "type": "qa",
+        "reference": "RFC 7230, Section 6.3"
+      }
+    },
+    {
+      "inputs": "What does HTTP/1.1 default to, as regards connections?",
+      "expected_output": "Persistent connections, allowing multiple requests and responses on a single connection.",
+      "metadata": {
+        "uuid": "cce0630c-9bd4-5d61-9053-4f143339495f",
+        "question_number": "16",
+        "type": "qa",
+        "reference": "RFC 9112, Section 9.3"
+      }
+    },
+    {
+      "inputs": "Are HTTP/1.1 connections persistent by default?",
+      "expected_output": "Yes.",
+      "metadata": {
+        "uuid": "cb489407-0103-5556-8439-b17169d9d032",
+        "question_number": "17",
+        "type": "qa",
+        "reference": "STD 99, Section 9.3"
+      }
+    },
+    {
+      "inputs": "With what string does the HTTP/2 client connection preface start?",
+      "expected_output": "PRI * HTTP/2.0\\r\\n\\r\\nSM\\r\\n\\r\\n",
+      "metadata": {
+        "uuid": "0e6db029-313a-5f4f-9cac-4b4c6c44e4b4",
+        "question_number": "18",
+        "type": "qa",
+        "reference": "RFC 7540, Section 3.5"
+      }
+    },
+    {
+      "inputs": "With what string does the HTTP/2 client connection preface start?",
+      "expected_output": "PRI * HTTP/2.0\\r\\n\\r\\nSM\\r\\n\\r\\n",
+      "metadata": {
+        "uuid": "1d00f156-7962-52ee-9eaf-d95969d182de",
+        "question_number": "19",
+        "type": "qa",
+        "reference": "RFC 9113, Section 3.4"
+      }
+    },
+    {
+      "inputs": "What protocol identifier denotes HTTP/2 over TLS?",
+      "expected_output": "h2.",
+      "metadata": {
+        "uuid": "e286b236-4cfb-5b04-b459-f6d91c6c0739",
+        "question_number": "20",
+        "type": "qa",
+        "reference": "RFC 9113, Section 3.1"
+      }
+    },
+    {
+      "inputs": "Which ALPN token selects HTTP/3?",
+      "expected_output": "h3.",
+      "metadata": {
+        "uuid": "fd466d7d-fd1a-553a-8ccd-a8a7893ca38e",
+        "question_number": "21",
+        "type": "qa",
+        "reference": "RFC 9114, Section 3.1"
+      }
+    },
+    {
+      "inputs": "Which methods does HTTP/1.0 define?",
+      "expected_output": "GET, HEAD, and POST.",
+      "metadata": {
+        "uuid": "a9971888-d90f-5d3d-863c-cf78aa2eb13f",
+        "question_number": "22",
+        "type": "qa",
+        "reference": "RFC 1945, Section 8"
+      }
+    },
+    {
+      "inputs": "Which request methods does the draft define as safe?",
+      "expected_output": "GET, HEAD, OPTIONS, and TRACE.",
+      "metadata": {
+        "uuid": "e863180f-47e9-5822-a174-ddecb00178fd",
+        "question_number": "23",
+        "type": "qa",
+        "reference": "draft-ietf-httpbis-semantics-19, Section 9.2.1"
+      }
+    },
+    {
+      "inputs": "Which request methods does the draft define as idempotent?",
+      "expected_output": "PUT, DELETE, and the safe request methods.",
+      "metadata": {
+        "uuid": "617f9559-20bf-5f20-925f-91375a3335a5",
+        "question_number": "24",
+        "type": "qa",
+        "reference": "draft-ietf-httpbis-semantics, Section 9.2.2"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# Normalization rules for the IETF HTTP RFC example corpus.  RFC numbers
+# already collapse cleanly ("RFC 9110", "RFC9110"), so little is needed.
+
+designators:
+  rewrite:
+    # STD numbers name whichever RFC currently holds them:  as of RFC 9110,
+    # 9111 and 9112 (June 2022), these.
+    - {pattern: '\bstd\s*97\b', replace: 'rfc 9110'}
+    - {pattern: '\bstd\s*98\b', replace: 'rfc 9111'}
+    - {pattern: '\bstd\s*99\b', replace: 'rfc 9112'}
+
+relations:
+  # "draft-ietf-httpbis-semantics" vs its "-19":  a draft revision, not a
+  # sub-publication.  RFC numbers never extend at a boundary, so this cannot
+  # misfire on them ("RFC 911" is not a prefix of "RFC 9110" at a boundary).
+  - {pattern: '^\d{2}$', label: draft revision}
