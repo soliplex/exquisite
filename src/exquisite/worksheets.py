@@ -28,6 +28,9 @@ from exquisite.designators import extension
 from exquisite.designators import numbers
 from exquisite.designators import series
 from exquisite.manifest import Corpus
+from exquisite.rules import BUILTIN_RULES
+from exquisite.rules import NORMALIZATION_VERSION
+from exquisite.rules import Rules
 
 #: Placeholder left for the SME.  Deliberately not a list, so an applier fails
 #: loudly on an unfilled entry rather than reading it as "no documents".
@@ -41,7 +44,6 @@ MAX_ADVISORY = 12
 #: answer is deleting the line.
 PROVISIONAL = "provisional"
 
-_NOT_A_REFERENCE = {"", "[To Be Filled Out]"}
 
 #: Comment block heading every worksheet; ``{database}`` is filled in.
 _HEADER = """\
@@ -159,11 +161,17 @@ def _document_lines(
     return lines
 
 
-def _flags(uri: str) -> str:
+def _flags(uri: str, rules: Rules = BUILTIN_RULES) -> str:
     notes = []
 
     if "#attachment=" in uri:
         notes.append("attachment")
+        parent = os.path.basename(uri.split("#attachment=", 1)[0])
+        notes += [
+            rule.note
+            for rule in rules.parent_notes
+            if rule.pattern.search(parent)
+        ]
 
     return ("   # " + "; ".join(notes)) if notes else ""
 
@@ -187,28 +195,32 @@ def _is_subsequence(wanted: list[str], within: list[str]) -> bool:
     return all(item in stream for item in wanted)
 
 
-def relation(key: str, identifier: str) -> str | None:
+def relation(
+    key: str, identifier: str, rules: Rules = BUILTIN_RULES
+) -> str | None:
     """How a document whose identifier extends a designator's key relates.
 
     None when the identifier does not extend the key (see
-    `designators.extension`), else what the extra part says:  ``supplement``,
-    ``volume``, or ``sub-publication``.
+    `designators.extension`), else what the extra part says:  the label of the
+    first relation matching it, the caller's tried before the built-in
+    ``supplement``, ``volume`` and ``sub-publication``.  The last built-in
+    matches anything, so some label always applies.
     """
-    rest = extension(key, identifier)
+    rest = extension(key, identifier, rules)
 
     if rest is None:
         return None
 
-    if "supp" in rest:
-        return "supplement"
-
-    if re.match(r"v\d", rest):
-        return "volume"
-
-    return "sub-publication"
+    return next(
+        rule.label
+        for rule in rules.effective_relations
+        if rule.pattern.search(rest)
+    )
 
 
-def find_candidates(key: str, seriess: set[str], corpus: Corpus) -> dict:
+def find_candidates(
+    key: str, seriess: set[str], corpus: Corpus, rules: Rules = BUILTIN_RULES
+) -> dict:
     """Documents resembling a collapsed key, in tiers, strongest first.
 
     ``identifier`` -- the document's publication designator
@@ -233,7 +245,7 @@ def find_candidates(key: str, seriess: set[str], corpus: Corpus) -> dict:
     """
     uris = [doc.uri for doc in corpus.documents]
     identified = sorted(
-        {doc.uri for doc in corpus.by_identifier().get(key, [])}
+        {doc.uri for doc in corpus.by_identifier(rules).get(key, [])}
     )
     extending: dict[str, str] = {}
 
@@ -241,7 +253,7 @@ def find_candidates(key: str, seriess: set[str], corpus: Corpus) -> dict:
         if not doc.document_identifier or doc.uri in identified:
             continue
 
-        how = relation(key, doc.document_identifier)
+        how = relation(key, doc.document_identifier, rules)
 
         if how:
             extending[doc.uri] = how
@@ -261,7 +273,7 @@ def find_candidates(key: str, seriess: set[str], corpus: Corpus) -> dict:
         if core and core in squashed:
             (matched if numbers(squashed) == wanted else related).append(uri)
         elif (
-            series(name) in seriess
+            series(name, rules) in seriess
             and wanted
             and _is_subsequence(wanted, numbers(squashed))
         ):
@@ -281,7 +293,7 @@ def find_candidates(key: str, seriess: set[str], corpus: Corpus) -> dict:
         found["truncated"] = len(related) > MAX_ADVISORY
     elif not matched and not identified and seriess:
         found["same_series"] = sorted(
-            {uri for uri in uris if series(_match_name(uri)) in seriess}
+            {uri for uri in uris if series(_match_name(uri), rules) in seriess}
         )[:MAX_ADVISORY]
 
     return found
@@ -355,20 +367,22 @@ def cross_references(
     return {key: sorted(others) for key, others in linked.items()}
 
 
-def references(cases: list[dict]) -> list[str]:
+def references(cases: list[dict], rules: Rules = BUILTIN_RULES) -> list[str]:
     """Every usable ``metadata.reference``, one per case that has one."""
     found = []
 
     for case in cases:
         text = (case.get("metadata") or {}).get("reference") or ""
 
-        if text.strip() not in _NOT_A_REFERENCE:
+        if text.strip() not in rules.not_references:
             found.append(text)
 
     return found
 
 
-def _validation_lines(validated: dict | None, substrate: str) -> list[str]:
+def _validation_lines(
+    validated: dict | None, substrate: str, rules: str
+) -> list[str]:
     """The `validated_by` / `validated_on` block, carried across a refresh.
 
     An attestation is not discarded on refresh -- that would throw away real
@@ -376,6 +390,9 @@ def _validation_lines(validated: dict | None, substrate: str) -> list[str]:
     been rebuilt with a different embedder or chunk size.  When the substrate
     has moved, the substrate it *was* validated against is recorded beside it,
     so the discrepancy lives in the file rather than in someone's memory.
+
+    Likewise the normalization ``rules`` (their digest):  a change can merge
+    or split the designator groups the SME attested to.
     """
     if not validated or not validated.get("validated_by"):
         return [
@@ -394,6 +411,14 @@ def _validation_lines(validated: dict | None, substrate: str) -> list[str]:
             f"validated_against_substrate: {was}"
             "   # THE CORPUS HAS BEEN REBUILT"
             " SINCE; RE-VALIDATE"
+        )
+
+    was = validated.get("rules")
+
+    if was and was != rules:
+        lines.append(
+            f"validated_against_rules: {was}"
+            "   # THE NORMALIZATION RULES HAVE CHANGED SINCE; RE-VALIDATE"
         )
 
     return lines
@@ -430,6 +455,7 @@ def preserved_answers(path: Path) -> tuple[dict, dict]:
         "validated_on": loaded.get("validated_on"),
         "substrate": loaded.get("validated_against_substrate")
         or loaded.get("substrate"),
+        "rules": loaded.get("validated_against_rules") or loaded.get("rules"),
         "generated": loaded.get("generated"),
     }
 
@@ -501,26 +527,33 @@ def render(
     previous: dict | None = None,
     validated: dict | None = None,
     provisional: bool = False,
+    rules: Rules = BUILTIN_RULES,
 ) -> str:
     """The worksheet text for one question set.
 
     With ``provisional``, a designator that has no answer yet gets a
     `provisional_answer` where one can be made.  Answers already present --
     including earlier provisional ones -- are always kept as they are.
+
+    ``rules`` decide how designators group and which documents are
+    candidates;  the worksheet records their digest.
     """
-    cited = references(cases)
-    counts = collections.Counter(designator(text) for text in cited)
-    by_reference = {text: designator(text) for text in set(cited)}
+    cited = references(cases, rules)
+    counts = collections.Counter(designator(text, rules) for text in cited)
+    by_reference = {text: designator(text, rules) for text in set(cited)}
     ordered = sorted(
-        counts, key=lambda name: (collapsed_key(name), name.casefold(), name)
+        counts,
+        key=lambda name: (collapsed_key(name, rules), name.casefold(), name),
     )
 
     groups: dict[str, list[str]] = collections.OrderedDict()
     for name in ordered:
-        groups.setdefault(collapsed_key(name), []).append(name)
+        groups.setdefault(collapsed_key(name, rules), []).append(name)
 
     found_by_key = {
-        key: find_candidates(key, {series(name) for name in names}, corpus)
+        key: find_candidates(
+            key, {series(name, rules) for name in names}, corpus, rules
+        )
         for key, names in groups.items()
     }
     linked = cross_references(found_by_key, corpus)
@@ -535,14 +568,16 @@ def render(
         "   # at generation; a mismatch means recheck",
         f"substrate: {substrate}"
         "   # embedder/chunking digest of the ingestion",
-        *_validation_lines(validated, substrate),
+        f"rules: {rules.digest}"
+        f"   # normalization v{NORMALIZATION_VERSION}, {rules.provenance}",
+        *_validation_lines(validated, substrate, rules.digest),
         "",
         "designators:",
     ]
 
     seen = None
     for name in ordered:
-        key = collapsed_key(name)
+        key = collapsed_key(name, rules)
 
         if key != seen:
             out += ["", f"  # {key}"]
@@ -590,7 +625,7 @@ def render(
             if relations and uri in relations:
                 notes.append(relations[uri])
 
-            flags = _flags(uri)
+            flags = _flags(uri, rules)
 
             if notes:
                 flags = (flags + "; " if flags else "   # ") + "; ".join(notes)
@@ -670,6 +705,7 @@ def refresh(
     ingestion: str | None,
     generated: str,
     provisional: bool = False,
+    rules: Rules = BUILTIN_RULES,
 ) -> list[tuple[str, int, int, int, bool]]:
     """Regenerate the machine-written parts of every existing worksheet.
 
@@ -684,7 +720,9 @@ def refresh(
     than doing quietly.
 
     With ``provisional``, designators still unanswered get a
-    `provisional_answer` where a trusted identifier match allows one.
+    `provisional_answer` where a trusted identifier match allows one.  A
+    worksheet generated under other ``rules`` is regenerated, since its
+    recorded digest no longer matches.
     """
     from exquisite import corpus as corpus_mod
     from exquisite import manifest as manifest_mod
@@ -711,6 +749,7 @@ def refresh(
                 previous=previous,
                 validated=validated,
                 provisional=provisional,
+                rules=rules,
             )
 
             # `generated:` records when the content was last actually
@@ -735,7 +774,9 @@ def refresh(
 
             text = rendered(generated=generated)
             path.write_text(text)
-            names = {designator(text_) for text_ in references(cases)}
+            names = {
+                designator(text_, rules) for text_ in references(cases, rules)
+            }
             kept = sum(1 for name in previous if name in names)
             done.append(
                 (
@@ -758,6 +799,7 @@ def create(
     ingestion: str | None,
     generated: str,
     provisional: bool = False,
+    rules: Rules = BUILTIN_RULES,
 ) -> Path:
     """Declare that ``question_set`` is scored against ``corpus_dir``.
 
@@ -775,7 +817,7 @@ def create(
     corpus = manifest_mod.load(corpus_dir.ingestion(ingestion))
     cases = json.loads(question_set.path.read_text())["cases"]
 
-    if not references(cases):
+    if not references(cases, rules):
         raise NoReferences(question_set.name)
 
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -789,6 +831,7 @@ def create(
             cases=cases,
             corpus=corpus,
             provisional=provisional,
+            rules=rules,
         )
     )
 

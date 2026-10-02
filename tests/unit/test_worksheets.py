@@ -12,6 +12,8 @@ from exquisite import worksheets
 from exquisite.designators import collapsed_key
 from exquisite.manifest import Corpus
 from exquisite.manifest import Document
+from exquisite.rules import BUILTIN_RULES
+from exquisite.rules import Rules
 
 
 def doc(name, identifier="", source="", certainty=None, sha256=None):
@@ -341,6 +343,7 @@ def test_substrate_digest_ignores_key_order():
                 "validated_by": "A. Person",
                 "validated_on": "2026-10-01",
                 "substrate": "abc",
+                "rules": "def",
             },
             ["validated_by: 'A. Person'", "validated_on: 2026-10-01"],
         ),
@@ -353,10 +356,21 @@ def test_substrate_digest_ignores_key_order():
                 "REBUILT SINCE; RE-VALIDATE",
             ],
         ),
+        (
+            {"validated_by": "A. Person", "substrate": "abc", "rules": "old"},
+            [
+                "validated_by: 'A. Person'",
+                "validated_on: ",
+                "validated_against_rules: old   # THE NORMALIZATION RULES "
+                "HAVE CHANGED SINCE; RE-VALIDATE",
+            ],
+        ),
     ],
 )
-def test_validation_lines_flag_a_rebuilt_corpus(validated, expected):
-    result = worksheets._validation_lines(validated, "abc")
+def test_validation_lines_flag_a_rebuilt_corpus_or_new_rules(
+    validated, expected
+):
+    result = worksheets._validation_lines(validated, "abc", "def")
 
     assert result == expected
 
@@ -491,3 +505,142 @@ class TestRefresh:
         assert (
             str(yaml.safe_load(path.read_text())["generated"]) == "2026-10-02"
         )
+
+
+CALLER = Rules.from_mapping(
+    {
+        "designators": {
+            "rewrite": [{"pattern": r"^\s*std\.?\s+", "replace": ""}]
+        },
+        "references": {"placeholders": ["TBD"]},
+        "relations": [{"pattern": r"^amd\d", "label": "amendment"}],
+        "attachments": {
+            "parent_notes": [
+                {"pattern": "^bulletin-", "note": "parent is a bulletin"}
+            ]
+        },
+    }
+)
+
+
+@pytest.mark.parametrize(
+    "rules, identifier, expected",
+    [
+        (BUILTIN_RULES, "ISO 9001 Amd 1", "sub-publication"),
+        (CALLER, "ISO 9001 Amd 1", "amendment"),
+        (CALLER, "ISO 9001-3", "sub-publication"),  # no caller rule matches
+    ],
+)
+def test_caller_relations_are_tried_first(rules, identifier, expected):
+    result = worksheets.relation("iso9001", identifier, rules)
+
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "rules, uri, expected",
+    [
+        (
+            BUILTIN_RULES,
+            "file:///d/bulletin-7.pdf#attachment=a.pdf",
+            "   # attachment",
+        ),
+        (
+            CALLER,
+            "file:///d/bulletin-7.pdf#attachment=a.pdf",
+            "   # attachment; parent is a bulletin",
+        ),
+        (CALLER, "file:///d/report.pdf#attachment=a.pdf", "   # attachment"),
+    ],
+)
+def test_parent_notes_mark_matching_attachments(rules, uri, expected):
+    result = worksheets._flags(uri, rules)
+
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "rules, expected",
+    [(BUILTIN_RULES, ["TBD", "ISO 9001"]), (CALLER, ["ISO 9001"])],
+)
+def test_caller_placeholders_are_not_references(rules, expected):
+    cases = make_cases("TBD", "ISO 9001", "[To Be Filled Out]")
+
+    result = worksheets.references(cases, rules)
+
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "rules, expected",
+    [(BUILTIN_RULES, []), (CALLER, ["file:///downloads/std.pdf"])],
+)
+def test_identifier_tier_collapses_under_the_rules(rules, expected):
+    corpus = make_corpus(doc("std.pdf", "STD 9001", "override"))
+    key = collapsed_key("9001", rules)
+
+    found = worksheets.find_candidates(key, set(), corpus, rules)
+
+    assert found["identifier"] == expected
+
+
+@pytest.mark.parametrize(
+    "rules, provenance",
+    [(BUILTIN_RULES, "built-ins only"), (CALLER, "built-ins + caller rules")],
+)
+def test_render_records_the_rules_digest(rules, provenance):
+    corpus = make_corpus()
+
+    text = render(corpus, make_cases("ISO 9001"), rules=rules)
+
+    line = f"rules: {rules.digest}   # normalization v1, {provenance}"
+    assert f"\n{line}\n" in text
+
+
+def test_render_groups_designators_under_the_rules():
+    cases = make_cases("STD. 9001", "9001")
+
+    text = render(make_corpus(), cases, rules=CALLER)
+
+    group = text.split("\n  # 9001\n", 1)[1].split("\n\n", 1)[0]
+    assert '- designator: "9001"' in group
+    assert '- designator: "STD. 9001"' in group
+
+
+def test_refresh_regenerates_a_worksheet_made_under_other_rules(
+    data_root, paired
+):
+    corpus_dir, path = paired
+
+    done = worksheets.refresh(
+        root=data_root,
+        corpora=[corpus_dir],
+        ingestion=None,
+        generated="2026-10-02",
+        rules=CALLER,
+    )
+
+    assert done[0][4] is True
+    assert f"rules: {CALLER.digest}" in path.read_text()
+
+
+def test_refresh_flags_a_validated_worksheet_after_a_rules_change(
+    data_root, paired
+):
+    corpus_dir, path = paired
+    text = path.read_text().replace(
+        "validated_by:      # FILL ME IN", "validated_by: 'A. Person'"
+    )
+    path.write_text(text)
+
+    worksheets.refresh(
+        root=data_root,
+        corpora=[corpus_dir],
+        ingestion=None,
+        generated="2026-10-02",
+        rules=CALLER,
+    )
+
+    loaded = yaml.safe_load(path.read_text())
+    assert loaded["rules"] == CALLER.digest
+    assert loaded["validated_against_rules"] == BUILTIN_RULES.digest

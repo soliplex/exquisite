@@ -55,6 +55,9 @@ from dataclasses import dataclass
 from dataclasses import field
 from pathlib import Path
 
+from exquisite.rules import BUILTIN_RULES
+from exquisite.rules import Rules
+
 COLUMNS = (
     "uri",
     "sha256",
@@ -308,14 +311,18 @@ class Corpus:
 
         return dict(found)
 
-    def by_identifier(self) -> dict[str, list[Document]]:
+    def by_identifier(
+        self, rules: Rules = BUILTIN_RULES
+    ) -> dict[str, list[Document]]:
+        """Keyed by each identifier's collapsed key under ``rules``."""
         from exquisite.designators import collapsed_key
 
         found: dict[str, list[Document]] = collections.defaultdict(list)
 
         for doc in self.documents:
             if doc.document_identifier:
-                found[collapsed_key(doc.document_identifier)].append(doc)
+                key = collapsed_key(doc.document_identifier, rules)
+                found[key].append(doc)
 
         return dict(found)
 

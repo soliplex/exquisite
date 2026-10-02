@@ -27,6 +27,9 @@ import os
 import urllib.parse
 from pathlib import Path
 
+from exquisite.rules import BUILTIN_RULES
+from exquisite.rules import Rules
+
 
 def _basename(uri: str) -> str:
     head = uri.split("#attachment=", 1)
@@ -96,7 +99,12 @@ def resolve_worksheet(worksheet: dict, corpus) -> tuple[dict, dict]:
 
 
 def resolve_file(
-    *, worksheet_path: Path, root, corpus, generated: str
+    *,
+    worksheet_path: Path,
+    root,
+    corpus,
+    generated: str,
+    rules: Rules = BUILTIN_RULES,
 ) -> dict:
     """Fill in a URI-referenced worksheet, leaving the attestation blank."""
     import json
@@ -132,6 +140,7 @@ def resolve_file(
             corpus=corpus,
             previous=previous,
             validated=validated,
+            rules=rules,
         )
     )
 

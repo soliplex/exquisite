@@ -13,7 +13,9 @@ inference writes into `document_identifier`, so a designator and an identifier
 for the same publication collapse to the same key.
 
 Equivalences particular to one publisher's scheme -- a series renamed over
-time, a prefix some citations carry and others omit -- are not built in.
+time, a prefix some citations carry and others omit -- are not built in.  A
+data repository supplies them as `exquisite.rules.Rules`, which every function
+here takes as ``rules``;  the default is the built-ins alone.
 
 None of this runs when a worksheet is *applied*.  A worksheet carries every
 verbatim ``metadata.reference`` string in its ``apply_keys`` block, so applying
@@ -24,19 +26,14 @@ would silently leave cases unlabelled rather than raising.
 
 import re
 
+from exquisite.rules import BUILTIN_RULES
+from exquisite.rules import Rules
+
 #: Dash characters these question sets mix freely, all meaning "-".
 _DASHES = str.maketrans({"‐": "-", "‑": "-", "‒": "-", "–": "-", "—": "-"})
 
-#: Words that begin the *location* half of a citation.  Everything from the
-#: first one onward is discarded.
-_LOCATION = re.compile(
-    r"[,;]|\b(?:chap|chapter|para|paragraph|pg|pgs|page|pages|table|figure|fig"
-    r"|attach\w*|attch|att|sec|section|note)\b",
-    re.I,
-)
 
-
-def designator(reference: str) -> str:
+def designator(reference: str, rules: Rules = BUILTIN_RULES) -> str:
     """The document-naming part of a ``reference``.
 
     A reference that is already a URI names a file outright -- the author
@@ -58,28 +55,33 @@ def designator(reference: str) -> str:
 
     text = reference.translate(_DASHES)
     text = re.sub(r"^\s*Ref:?\s*", "", text, flags=re.I)
-    match = _LOCATION.search(text)
+    # Everything from the first location word onward is discarded.
+    match = rules.location.search(text)
     head = text[: match.start()] if match else text
 
     return re.sub(r"\s+", " ", head.strip(" ,.-"))
 
 
-def _normalized(text: str) -> str:
-    """Lower-cased, with the known equivalences applied but spacing intact."""
+def _normalized(text: str, rules: Rules = BUILTIN_RULES) -> str:
+    """Lower-cased, with the known equivalences applied but spacing intact.
+
+    The caller's rewrites run first, so a built-in folding (see
+    `exquisite.rules.BUILTIN_REWRITES`) sees what they produce.
+    """
     out = text.casefold().replace("_", " ")  # "_" is a separator here
-    out = re.sub(r"\bvol(?:ume)?\.?\s*", "v", out)  # "Vol 3" -> "v3"
-    # "Supplement", "Suppl", "Sup" -> "supp", as `identify` writes it.
-    out = re.sub(r"\b(?:sup|supp|suppl|supplement)\b", "supp", out)
+
+    for rewrite in rules.effective_rewrites:
+        out = rewrite.pattern.sub(rewrite.replace, out)
 
     return out
 
 
-def collapsed_key(text: str) -> str:
+def collapsed_key(text: str, rules: Rules = BUILTIN_RULES) -> str:
     """The key that groups spelling variants of one document together."""
-    return re.sub(r"[^a-z0-9]", "", _normalized(text))
+    return re.sub(r"[^a-z0-9]", "", _normalized(text, rules))
 
 
-def extension(key: str, text: str) -> str | None:
+def extension(key: str, text: str, rules: Rules = BUILTIN_RULES) -> str | None:
     """What ``text`` adds after ``key``, when it extends it at a real boundary.
 
     ``key`` is a collapsed key;  ``text`` is compared in its normalized,
@@ -94,7 +96,7 @@ def extension(key: str, text: str) -> str | None:
     then ``A``).  A digit run or a word that simply continues is not an
     extension.  Returns the remainder, collapsed, or None.
     """
-    normalized = _normalized(text)
+    normalized = _normalized(text, rules)
     position = 0
     consumed = 0
 
@@ -128,7 +130,7 @@ def extension(key: str, text: str) -> str | None:
     return collapsed_rest if starts_at_separator or changes_kind else None
 
 
-def series(name: str) -> str:
+def series(name: str, rules: Rules = BUILTIN_RULES) -> str:
     """The publication series a designator or filename belongs to.
 
     Read off the *first token* rather than the collapsed form:  collapsing
@@ -137,12 +139,14 @@ def series(name: str) -> str:
     its own series -- and in a corpus whose only copy of ``NIST SP 800-61`` is
     named ``nist-incident-handling.pdf``, that is the only file the designator
     can resolve to.
+
+    A series the rules name as an alias of another is that other one.
     """
-    tokens = re.split(r"[^a-z0-9]+", _normalized(name))
+    tokens = re.split(r"[^a-z0-9]+", _normalized(name, rules))
     match = re.match(r"([a-z]+)", tokens[0] if tokens else "")
     found = match.group(1) if match else ""
 
-    return found
+    return rules.canonical_series(found)
 
 
 def numbers(text: str) -> list[str]:

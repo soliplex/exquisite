@@ -236,3 +236,66 @@ def test_bind_refuses_an_unready_worksheet(monkeypatch, capsys, paired):
     assert status == 1
     assert captured.out == ""
     assert captured.err.startswith("set.yaml is not ready to bind:\n")
+
+
+RULES = "references:\n  placeholders: [TBD]\n"
+
+
+def created_rules_line(root):
+    text = (root / "corpus" / "std" / "worksheet" / "set.yaml").read_text()
+
+    return next(
+        line for line in text.splitlines() if line.startswith("rules:")
+    )
+
+
+def test_add_worksheet_uses_the_roots_rules_file(monkeypatch, std):
+    from exquisite import rules
+
+    (std / rules.FILENAME).write_text(RULES)
+    args = ["--corpus", "std", "--questions", "set"]
+
+    status = run(monkeypatch, std, "add-worksheet", *args)
+
+    expected = rules.Rules.load(std / rules.FILENAME).digest
+    assert status == 0
+    assert created_rules_line(std).startswith(f"rules: {expected} ")
+
+
+def test_an_explicit_rules_file_wins(monkeypatch, std, tmp_path):
+    from exquisite import rules
+
+    (std / rules.FILENAME).write_text("relations: []\n")
+    explicit = tmp_path / "explicit.yaml"
+    explicit.write_text(RULES)
+    args = ["--corpus", "std", "--questions", "set", "--rules", str(explicit)]
+
+    status = run(monkeypatch, std, "add-worksheet", *args)
+
+    expected = rules.Rules.load(explicit).digest
+    assert status == 0
+    assert created_rules_line(std).startswith(f"rules: {expected} ")
+
+
+@pytest.mark.parametrize(
+    "text, message",
+    [
+        ("relation: []\n", "unknown key 'relation' in the rules"),
+        ("relations: [\n", "while parsing"),
+        (None, "No such file or directory"),
+    ],
+)
+def test_unusable_rules_are_a_usage_error(
+    monkeypatch, capsys, std, tmp_path, text, message
+):
+    path = tmp_path / "rules.yaml"
+    if text is not None:
+        path.write_text(text)
+    args = ["--corpus", "std", "--questions", "set", "--rules", str(path)]
+
+    status = run(monkeypatch, std, "add-worksheet", *args)
+
+    captured = capsys.readouterr()
+    assert status == 2
+    assert "cannot use the rules:" in captured.err
+    assert message in captured.err

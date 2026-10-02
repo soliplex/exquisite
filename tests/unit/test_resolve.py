@@ -171,3 +171,21 @@ def test_resolve_file_skips_a_prose_referenced_worksheet(data_root):
         "references are not URIs; use the worksheet interview"
     )
     assert path.read_text() == before
+
+
+def test_resolve_file_records_the_rules_it_rendered_under(data_root):
+    from exquisite.rules import Rules
+
+    rules = Rules.from_mapping({"references": {"placeholders": ["TBD"]}})
+    document = Document(uri=REFERENCE, sha256="h")
+    path, _, corpus = write_worksheet(data_root, [REFERENCE], [document])
+
+    resolve.resolve_file(
+        worksheet_path=path,
+        root=data_root,
+        corpus=corpus,
+        generated="2026-10-02",
+        rules=rules,
+    )
+
+    assert f"rules: {rules.digest}" in path.read_text()
