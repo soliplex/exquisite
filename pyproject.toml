@@ -38,6 +38,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/soliplex/exquisite"
+Documentation = "https://soliplex.github.io/exquisite/"
 Repository = "https://github.com/soliplex/exquisite"
 Issues = "https://github.com/soliplex/exquisite/issues"
 
