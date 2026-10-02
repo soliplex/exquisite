@@ -8,16 +8,14 @@ import pytest
 import yaml
 
 from exquisite import corpus as corpus_mod
+from exquisite import designators
+from exquisite import manifest
+from exquisite import rules as rules_mod
 from exquisite import worksheets
-from exquisite.designators import collapsed_key
-from exquisite.manifest import Corpus
-from exquisite.manifest import Document
-from exquisite.rules import BUILTIN_RULES
-from exquisite.rules import Rules
 
 
 def doc(name, identifier="", source="", certainty=None, sha256=None):
-    return Document(
+    return manifest.Document(
         uri=f"file:///downloads/{name}",
         sha256=sha256 or f"sha-{name}",
         document_identifier=identifier,
@@ -27,7 +25,7 @@ def doc(name, identifier="", source="", certainty=None, sha256=None):
 
 
 def make_corpus(*docs):
-    return Corpus(database="corpus", documents=list(docs))
+    return manifest.Corpus(database="corpus", documents=list(docs))
 
 
 def make_cases(*references):
@@ -60,7 +58,7 @@ class TestRelation:
     def test_names_how_an_extending_identifier_relates(
         self, identifier, expected
     ):
-        key = collapsed_key("IEC 61508")
+        key = designators.collapsed_key("IEC 61508")
 
         result = worksheets.relation(key, identifier)
 
@@ -68,7 +66,7 @@ class TestRelation:
 
     def test_a_volume(self):
         result = worksheets.relation(
-            collapsed_key("IEC 61508"), "IEC 61508 Vol 2"
+            designators.collapsed_key("IEC 61508"), "IEC 61508 Vol 2"
         )
 
         assert result == "volume"
@@ -81,7 +79,7 @@ class TestFindCandidates:
             doc("supp.pdf", "IEC 61508 Supplement", "override"),
             doc("part.pdf", "IEC 61508-3", "override"),
         )
-        key = collapsed_key("IEC 61508")
+        key = designators.collapsed_key("IEC 61508")
 
         found = worksheets.find_candidates(key, {"iec"}, corpus)
 
@@ -95,7 +93,7 @@ class TestFindCandidates:
         corpus = make_corpus(doc("sp800-53.pdf", "NIST SP 800-53", "override"))
 
         found = worksheets.find_candidates(
-            collapsed_key("NIST SP 800-5"), {"nist"}, corpus
+            designators.collapsed_key("NIST SP 800-5"), {"nist"}, corpus
         )
 
         assert "identifier_related" not in found
@@ -311,7 +309,7 @@ def test_a_document_matching_its_own_group_links_nothing():
 
 
 def test_substrate_digest_of_an_unrecorded_substrate():
-    corpus = Corpus(database="std")
+    corpus = manifest.Corpus(database="std")
 
     result = worksheets.substrate_digest(corpus)
 
@@ -320,7 +318,7 @@ def test_substrate_digest_of_an_unrecorded_substrate():
 
 def test_substrate_digest_ignores_key_order():
     substrate = {"processing": {"chunk_size": 256}, "embeddings": {"n": "e"}}
-    corpus = Corpus(database="std", about={"substrate": substrate})
+    corpus = manifest.Corpus(database="std", about={"substrate": substrate})
     canonical = json.dumps(substrate, sort_keys=True).encode()
 
     result = worksheets.substrate_digest(corpus)
@@ -410,7 +408,7 @@ def paired(data_root):
         "std",
         "std",
         [
-            Document(
+            manifest.Document(
                 uri="file:///iso.pdf",
                 sha256="h",
                 document_identifier="ISO 9001",
@@ -507,7 +505,7 @@ class TestRefresh:
         )
 
 
-CALLER = Rules.from_mapping(
+CALLER = rules_mod.Rules.from_mapping(
     {
         "designators": {
             "rewrite": [{"pattern": r"^\s*std\.?\s+", "replace": ""}]
@@ -526,7 +524,7 @@ CALLER = Rules.from_mapping(
 @pytest.mark.parametrize(
     "rules, identifier, expected",
     [
-        (BUILTIN_RULES, "ISO 9001 Amd 1", "sub-publication"),
+        (rules_mod.BUILTIN_RULES, "ISO 9001 Amd 1", "sub-publication"),
         (CALLER, "ISO 9001 Amd 1", "amendment"),
         (CALLER, "ISO 9001-3", "sub-publication"),  # no caller rule matches
     ],
@@ -541,7 +539,7 @@ def test_caller_relations_are_tried_first(rules, identifier, expected):
     "rules, uri, expected",
     [
         (
-            BUILTIN_RULES,
+            rules_mod.BUILTIN_RULES,
             "file:///d/bulletin-7.pdf#attachment=a.pdf",
             "   # attachment",
         ),
@@ -561,7 +559,7 @@ def test_parent_notes_mark_matching_attachments(rules, uri, expected):
 
 @pytest.mark.parametrize(
     "rules, expected",
-    [(BUILTIN_RULES, ["TBD", "ISO 9001"]), (CALLER, ["ISO 9001"])],
+    [(rules_mod.BUILTIN_RULES, ["TBD", "ISO 9001"]), (CALLER, ["ISO 9001"])],
 )
 def test_caller_placeholders_are_not_references(rules, expected):
     cases = make_cases("TBD", "ISO 9001", "[To Be Filled Out]")
@@ -573,11 +571,11 @@ def test_caller_placeholders_are_not_references(rules, expected):
 
 @pytest.mark.parametrize(
     "rules, expected",
-    [(BUILTIN_RULES, []), (CALLER, ["file:///downloads/std.pdf"])],
+    [(rules_mod.BUILTIN_RULES, []), (CALLER, ["file:///downloads/std.pdf"])],
 )
 def test_identifier_tier_collapses_under_the_rules(rules, expected):
     corpus = make_corpus(doc("std.pdf", "STD 9001", "override"))
-    key = collapsed_key("9001", rules)
+    key = designators.collapsed_key("9001", rules)
 
     found = worksheets.find_candidates(key, set(), corpus, rules)
 
@@ -586,7 +584,10 @@ def test_identifier_tier_collapses_under_the_rules(rules, expected):
 
 @pytest.mark.parametrize(
     "rules, provenance",
-    [(BUILTIN_RULES, "built-ins only"), (CALLER, "built-ins + caller rules")],
+    [
+        (rules_mod.BUILTIN_RULES, "built-ins only"),
+        (CALLER, "built-ins + caller rules"),
+    ],
 )
 def test_render_records_the_rules_digest(rules, provenance):
     corpus = make_corpus()
@@ -643,4 +644,4 @@ def test_refresh_flags_a_validated_worksheet_after_a_rules_change(
 
     loaded = yaml.safe_load(path.read_text())
     assert loaded["rules"] == CALLER.digest
-    assert loaded["validated_against_rules"] == BUILTIN_RULES.digest
+    assert loaded["validated_against_rules"] == rules_mod.BUILTIN_RULES.digest

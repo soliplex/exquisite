@@ -6,10 +6,10 @@ import _builders
 import pytest
 import yaml
 
+from exquisite import manifest
 from exquisite import resolve
+from exquisite import rules as rules_mod
 from exquisite import worksheets
-from exquisite.manifest import Corpus
-from exquisite.manifest import Document
 
 REFERENCE = "file:///downloads/std/iso-9001.pdf"
 
@@ -25,9 +25,11 @@ def uri_worksheet(*references):
 
 
 def make_corpus(*uris):
-    return Corpus(
+    return manifest.Corpus(
         database="std",
-        documents=[Document(uri=uri, sha256=f"sha-{uri}") for uri in uris],
+        documents=[
+            manifest.Document(uri=uri, sha256=f"sha-{uri}") for uri in uris
+        ],
     )
 
 
@@ -121,7 +123,7 @@ def test_prose_references_are_not_its_business(worksheet):
 def write_worksheet(root, references, documents):
     _builders.question_set(root, "uris", references)
     path = _builders.ingestion(root, "std", "std", documents)
-    corpus = Corpus(database="std", documents=documents)
+    corpus = manifest.Corpus(database="std", documents=documents)
     cases = json.loads((root / "questions" / "uris.json").read_text())
     text = worksheets.render(
         question_set="questions/uris.json",
@@ -137,7 +139,7 @@ def write_worksheet(root, references, documents):
 
 
 def test_resolve_file_fills_in_and_rewrites_the_worksheet(data_root):
-    document = Document(uri=REFERENCE, sha256="h")
+    document = manifest.Document(uri=REFERENCE, sha256="h")
     path, _, corpus = write_worksheet(data_root, [REFERENCE], [document])
 
     tally = resolve.resolve_file(
@@ -156,7 +158,7 @@ def test_resolve_file_fills_in_and_rewrites_the_worksheet(data_root):
 
 
 def test_resolve_file_skips_a_prose_referenced_worksheet(data_root):
-    document = Document(uri=REFERENCE, sha256="h")
+    document = manifest.Document(uri=REFERENCE, sha256="h")
     path, _, corpus = write_worksheet(data_root, ["ISO 9001"], [document])
     before = path.read_text()
 
@@ -174,10 +176,10 @@ def test_resolve_file_skips_a_prose_referenced_worksheet(data_root):
 
 
 def test_resolve_file_records_the_rules_it_rendered_under(data_root):
-    from exquisite.rules import Rules
-
-    rules = Rules.from_mapping({"references": {"placeholders": ["TBD"]}})
-    document = Document(uri=REFERENCE, sha256="h")
+    rules = rules_mod.Rules.from_mapping(
+        {"references": {"placeholders": ["TBD"]}}
+    )
+    document = manifest.Document(uri=REFERENCE, sha256="h")
     path, _, corpus = write_worksheet(data_root, [REFERENCE], [document])
 
     resolve.resolve_file(

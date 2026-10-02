@@ -24,16 +24,19 @@ designators it would have to reproduce this module exactly, and any drift
 would silently leave cases unlabelled rather than raising.
 """
 
+import os
 import re
+import urllib.parse
 
-from exquisite.rules import BUILTIN_RULES
-from exquisite.rules import Rules
+from exquisite import rules as rules_mod
 
 #: Dash characters these question sets mix freely, all meaning "-".
 _DASHES = str.maketrans({"‐": "-", "‑": "-", "‒": "-", "–": "-", "—": "-"})
 
 
-def designator(reference: str, rules: Rules = BUILTIN_RULES) -> str:
+def designator(
+    reference: str, rules: rules_mod.Rules = rules_mod.BUILTIN_RULES
+) -> str:
     """The document-naming part of a ``reference``.
 
     A reference that is already a URI names a file outright -- the author
@@ -43,9 +46,6 @@ def designator(reference: str, rules: Rules = BUILTIN_RULES) -> str:
     and asks an SME to re-decide something already decided.
     """
     if "://" in reference:
-        import os
-        import urllib.parse
-
         head = reference.split("#attachment=", 1)
         name = os.path.basename(
             urllib.parse.unquote(head[-1] if len(head) > 1 else head[0])
@@ -62,7 +62,9 @@ def designator(reference: str, rules: Rules = BUILTIN_RULES) -> str:
     return re.sub(r"\s+", " ", head.strip(" ,.-"))
 
 
-def _normalized(text: str, rules: Rules = BUILTIN_RULES) -> str:
+def _normalized(
+    text: str, rules: rules_mod.Rules = rules_mod.BUILTIN_RULES
+) -> str:
     """Lower-cased, with the known equivalences applied but spacing intact.
 
     The caller's rewrites run first, so a built-in folding (see
@@ -76,12 +78,16 @@ def _normalized(text: str, rules: Rules = BUILTIN_RULES) -> str:
     return out
 
 
-def collapsed_key(text: str, rules: Rules = BUILTIN_RULES) -> str:
+def collapsed_key(
+    text: str, rules: rules_mod.Rules = rules_mod.BUILTIN_RULES
+) -> str:
     """The key that groups spelling variants of one document together."""
     return re.sub(r"[^a-z0-9]", "", _normalized(text, rules))
 
 
-def extension(key: str, text: str, rules: Rules = BUILTIN_RULES) -> str | None:
+def extension(
+    key: str, text: str, rules: rules_mod.Rules = rules_mod.BUILTIN_RULES
+) -> str | None:
     """What ``text`` adds after ``key``, when it extends it at a real boundary.
 
     ``key`` is a collapsed key;  ``text`` is compared in its normalized,
@@ -130,7 +136,7 @@ def extension(key: str, text: str, rules: Rules = BUILTIN_RULES) -> str | None:
     return collapsed_rest if starts_at_separator or changes_kind else None
 
 
-def series(name: str, rules: Rules = BUILTIN_RULES) -> str:
+def series(name: str, rules: rules_mod.Rules = rules_mod.BUILTIN_RULES) -> str:
     """The publication series a designator or filename belongs to.
 
     Read off the *first token* rather than the collapsed form:  collapsing

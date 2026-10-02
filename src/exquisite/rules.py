@@ -35,13 +35,14 @@ The built-in tables below are digested as data, along with
 changes.
 """
 
+import dataclasses
 import functools
 import hashlib
 import json
+import pathlib
 import re
-from dataclasses import dataclass
-from dataclasses import field
-from pathlib import Path
+
+import yaml
 
 #: The rules file, at the root of a data repository.
 FILENAME = "exquisite.yaml"
@@ -153,25 +154,25 @@ class InvalidPattern(RulesError):
         super().__init__(f"{key}: invalid pattern {pattern!r}: {reason}")
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class Rewrite:
     pattern: re.Pattern
     replace: str
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class Relation:
     pattern: re.Pattern
     label: str
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class ParentNote:
     pattern: re.Pattern
     note: str
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class Rules:
     """The rules in effect:  the built-ins plus a caller's, compiled."""
 
@@ -184,7 +185,9 @@ class Rules:
     relations: tuple[Relation, ...] = ()
     parent_notes: tuple[ParentNote, ...] = ()
     #: The caller's rules as written, for the digest.
-    source: dict = field(default_factory=dict, compare=False, hash=False)
+    source: dict = dataclasses.field(
+        default_factory=dict, compare=False, hash=False
+    )
 
     @classmethod
     def default(cls) -> "Rules":
@@ -192,9 +195,8 @@ class Rules:
         return BUILTIN_RULES
 
     @classmethod
-    def load(cls, path: Path) -> "Rules":
+    def load(cls, path: pathlib.Path) -> "Rules":
         """The built-ins extended by the rules file at ``path``."""
-        import yaml
 
         return cls.from_mapping(yaml.safe_load(path.read_text()) or {})
 
@@ -312,7 +314,7 @@ _BUILTIN_SOURCE = {
 BUILTIN_RULES = Rules()
 
 
-def find(root: Path, path: Path | None = None) -> Rules:
+def find(root: pathlib.Path, path: pathlib.Path | None = None) -> Rules:
     """The rules for the data repository at ``root``.
 
     ``path`` names a rules file explicitly, and must exist;  without it,

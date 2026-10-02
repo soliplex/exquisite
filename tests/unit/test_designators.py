@@ -2,12 +2,8 @@
 
 import pytest
 
-from exquisite.designators import collapsed_key
-from exquisite.designators import designator
-from exquisite.designators import extension
-from exquisite.designators import series
-from exquisite.rules import BUILTIN_RULES
-from exquisite.rules import Rules
+from exquisite import designators
+from exquisite import rules as rules_mod
 
 
 class TestCollapsedKey:
@@ -24,12 +20,12 @@ class TestCollapsedKey:
     )
     def test_folds_spellings_identify_normalizes(self, a, b):
         # The right-hand spellings are the forms `identify` writes.
-        result = collapsed_key(a)
+        result = designators.collapsed_key(a)
 
-        assert result == collapsed_key(b)
+        assert result == designators.collapsed_key(b)
 
     def test_leaves_words_merely_starting_with_sup_alone(self):
-        result = collapsed_key("Support Manual")
+        result = designators.collapsed_key("Support Manual")
 
         assert result == "supportmanual"
 
@@ -47,7 +43,9 @@ class TestExtension:
     def test_returns_what_extends_the_key_at_a_boundary(
         self, designator, identifier, expected
     ):
-        result = extension(collapsed_key(designator), identifier)
+        result = designators.extension(
+            designators.collapsed_key(designator), identifier
+        )
 
         assert result == expected
 
@@ -65,12 +63,14 @@ class TestExtension:
         ],
     )
     def test_refuses_what_only_shares_a_prefix(self, designator, identifier):
-        result = extension(collapsed_key(designator), identifier)
+        result = designators.extension(
+            designators.collapsed_key(designator), identifier
+        )
 
         assert result is None
 
 
-CALLER = Rules.from_mapping(
+CALLER = rules_mod.Rules.from_mapping(
     {
         "designators": {
             "rewrite": [
@@ -86,49 +86,49 @@ CALLER = Rules.from_mapping(
 
 @pytest.mark.parametrize(
     "rules, expected",
-    [(BUILTIN_RULES, "std9001"), (CALLER, "9001")],
+    [(rules_mod.BUILTIN_RULES, "std9001"), (CALLER, "9001")],
 )
 def test_rewrites_apply_only_when_given(rules, expected):
-    result = collapsed_key("STD. 9001", rules)
+    result = designators.collapsed_key("STD. 9001", rules)
 
     assert result == expected
 
 
 @pytest.mark.parametrize(
     "rules, expected",
-    [(BUILTIN_RULES, "iso9001addendum"), (CALLER, "iso9001supp")],
+    [(rules_mod.BUILTIN_RULES, "iso9001addendum"), (CALLER, "iso9001supp")],
 )
 def test_rewrites_run_before_the_builtin_folding(rules, expected):
-    result = collapsed_key("ISO 9001 Addendum", rules)
+    result = designators.collapsed_key("ISO 9001 Addendum", rules)
 
     assert result == expected
 
 
 @pytest.mark.parametrize(
     "rules, expected",
-    [(BUILTIN_RULES, "addendum"), (CALLER, "supp")],
+    [(rules_mod.BUILTIN_RULES, "addendum"), (CALLER, "supp")],
 )
 def test_extension_sees_the_rewritten_text(rules, expected):
-    result = extension("iso9001", "ISO 9001 Addendum", rules)
+    result = designators.extension("iso9001", "ISO 9001 Addendum", rules)
 
     assert result == expected
 
 
 @pytest.mark.parametrize(
     "rules, expected",
-    [(BUILTIN_RULES, "isoiec"), (CALLER, "iso")],
+    [(rules_mod.BUILTIN_RULES, "isoiec"), (CALLER, "iso")],
 )
 def test_series_resolves_aliases_only_when_given(rules, expected):
-    result = series("isoiec-27001.pdf", rules)
+    result = designators.series("isoiec-27001.pdf", rules)
 
     assert result == expected
 
 
 @pytest.mark.parametrize(
     "rules, expected",
-    [(BUILTIN_RULES, "ISO 9001 Clause 4"), (CALLER, "ISO 9001")],
+    [(rules_mod.BUILTIN_RULES, "ISO 9001 Clause 4"), (CALLER, "ISO 9001")],
 )
 def test_extra_location_words_end_the_designator(rules, expected):
-    result = designator("ISO 9001 Clause 4", rules)
+    result = designators.designator("ISO 9001 Clause 4", rules)
 
     assert result == expected

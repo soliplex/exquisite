@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-exquisite = "exquisite:main"
+exquisite = "exquisite.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.11.1,<0.12.0"]
@@ -81,6 +81,11 @@ select = [
     "TRY",
     # flake8-pytest-style
     "PT",
+    # pylint:  imports belong at a module's top level
+    "PLC0415",
+    # flake8-import-conventions:  import modules, not their attributes
+    # (see `banned-from` below)
+    "ICN003",
 ]
 ignore = [
     "PT019",  # incorrecly flags '@mock.patch' args as fixtures
@@ -89,6 +94,43 @@ ignore = [
 [tool.ruff.lint.isort]
 force-single-line = true
 known-third-party = ["alembic"]
+
+[tool.ruff.lint.flake8-import-conventions]
+# `ICN003` refuses `from <module> import <attribute>` only for the modules
+# listed here:  import the module itself instead.  Ruff has no rule covering
+# every module, so add each new package module, and each newly used library,
+# as it appears.  `exquisite` itself is deliberately absent:  banning it would
+# also refuse `from exquisite import rules`, which imports a module.
+banned-from = [
+    # the standard library, as used here
+    "argparse",
+    "collections",
+    "csv",
+    "dataclasses",
+    "datetime",
+    "functools",
+    "hashlib",
+    "json",
+    "os",
+    "pathlib",
+    "re",
+    "sys",
+    "urllib.parse",
+    # third-party
+    "pytest",
+    "yaml",
+    # this package
+    "exquisite.bind",
+    "exquisite.cli",
+    "exquisite.corpus",
+    "exquisite.designators",
+    "exquisite.manifest",
+    "exquisite.resolve",
+    "exquisite.rules",
+    "exquisite.worksheets",
+    # test helpers
+    "_builders",
+]
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"

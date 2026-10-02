@@ -30,8 +30,8 @@ which names the set it maps.  Matching filenames are a convenience for someone
 reading the directory, not the linkage.
 """
 
-from dataclasses import dataclass
-from pathlib import Path
+import dataclasses
+import pathlib
 
 PRUNED_SUFFIX = "_pruned"
 
@@ -86,10 +86,10 @@ class AmbiguousIngestion(ValueError):
         )
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class QuestionSet:
-    path: Path
-    root: Path
+    path: pathlib.Path
+    root: pathlib.Path
 
     @property
     def name(self) -> str:
@@ -110,7 +110,7 @@ class QuestionSet:
 
 
 def question_sets(
-    root: Path, *, include_pruned: bool = False
+    root: pathlib.Path, *, include_pruned: bool = False
 ) -> list[QuestionSet]:
     found = [
         QuestionSet(path, root)
@@ -120,7 +120,7 @@ def question_sets(
     return [item for item in found if include_pruned or not item.is_pruned]
 
 
-def find_question_set(root: Path, name: str) -> QuestionSet:
+def find_question_set(root: pathlib.Path, name: str) -> QuestionSet:
     """Locate a set by stem, with or without the ``.json``."""
     stem = name[:-5] if name.endswith(".json") else name
 
@@ -133,25 +133,25 @@ def find_question_set(root: Path, name: str) -> QuestionSet:
     raise UnknownQuestionSet(stem, known)
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class CorpusDir:
-    path: Path
-    root: Path
+    path: pathlib.Path
+    root: pathlib.Path
 
     @property
     def name(self) -> str:
         return self.path.name
 
-    def worksheets(self) -> list[Path]:
+    def worksheets(self) -> list[pathlib.Path]:
         return sorted((self.path / "worksheet").glob("*.yaml"))
 
-    def worksheet_for(self, question_set: QuestionSet) -> Path:
+    def worksheet_for(self, question_set: QuestionSet) -> pathlib.Path:
         return self.path / "worksheet" / f"{question_set.name}.yaml"
 
-    def ingestions(self) -> list[Path]:
+    def ingestions(self) -> list[pathlib.Path]:
         return sorted((self.path / "ingestion").glob("*.csv"))
 
-    def ingestion(self, name: str | None = None) -> Path:
+    def ingestion(self, name: str | None = None) -> pathlib.Path:
         """The manifest to work against.
 
         With several present an explicit name is required:  silently picking
@@ -178,7 +178,7 @@ class CorpusDir:
         return found[0]
 
 
-def discover(root: Path) -> list[CorpusDir]:
+def discover(root: pathlib.Path) -> list[CorpusDir]:
     base = root / "corpus"
 
     return [
@@ -188,7 +188,7 @@ def discover(root: Path) -> list[CorpusDir]:
     ]
 
 
-def find(root: Path, name: str) -> CorpusDir:
+def find(root: pathlib.Path, name: str) -> CorpusDir:
     path = root / "corpus" / name
 
     if not path.is_dir():

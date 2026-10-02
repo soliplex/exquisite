@@ -26,13 +26,9 @@ add it to the samples -- which itself changes the hash, and so the version.
 import hashlib
 import json
 
+from exquisite import designators
+from exquisite import rules
 from exquisite import worksheets
-from exquisite.designators import collapsed_key
-from exquisite.designators import designator
-from exquisite.designators import extension
-from exquisite.designators import series
-from exquisite.rules import NORMALIZATION_CHANGES
-from exquisite.rules import NORMALIZATION_VERSION
 
 #: The hash of `_outputs()` under each released normalization version.
 GOLDEN = {
@@ -90,14 +86,15 @@ RELATIONS = [
 def _outputs() -> dict:
     """What the built-in rules make of every sample."""
     return {
-        "designator": [designator(text) for text in DESIGNATORS],
-        "collapsed_key": [collapsed_key(text) for text in KEYS],
+        "designator": [designators.designator(text) for text in DESIGNATORS],
+        "collapsed_key": [designators.collapsed_key(text) for text in KEYS],
         "extension": [
-            extension(collapsed_key(key), text) for key, text in EXTENSIONS
+            designators.extension(designators.collapsed_key(key), text)
+            for key, text in EXTENSIONS
         ],
-        "series": [series(name) for name in SERIES],
+        "series": [designators.series(name) for name in SERIES],
         "relation": [
-            worksheets.relation(collapsed_key(key), text)
+            worksheets.relation(designators.collapsed_key(key), text)
             for key, text in RELATIONS
         ],
     }
@@ -110,18 +107,19 @@ def test_builtin_normalization_matches_its_version():
         json.dumps(outputs, sort_keys=True).encode()
     ).hexdigest()[:16]
 
-    assert GOLDEN.get(NORMALIZATION_VERSION) == found, (
+    assert GOLDEN.get(rules.NORMALIZATION_VERSION) == found, (
         f"built-in normalization output hashes to {found!r}, but "
-        f"GOLDEN[{NORMALIZATION_VERSION}] is "
-        f"{GOLDEN.get(NORMALIZATION_VERSION)!r}.  If the change is intended, "
-        "add a NORMALIZATION_CHANGES entry and record this hash as the "
-        "matching GOLDEN entry; see this module's docstring."
+        f"GOLDEN[{rules.NORMALIZATION_VERSION}] is "
+        f"{GOLDEN.get(rules.NORMALIZATION_VERSION)!r}.  "
+        "If the change is intended, add a NORMALIZATION_CHANGES entry and "
+        "record this hash as the matching GOLDEN entry; see this module's "
+        "docstring."
     )
 
 
 def test_every_version_has_a_note_and_a_hash():
-    versions = sorted(NORMALIZATION_CHANGES)
+    versions = sorted(rules.NORMALIZATION_CHANGES)
 
     assert versions == sorted(GOLDEN)
-    assert versions == list(range(1, NORMALIZATION_VERSION + 1))
-    assert all(note.strip() for note in NORMALIZATION_CHANGES.values())
+    assert versions == list(range(1, rules.NORMALIZATION_VERSION + 1))
+    assert all(note.strip() for note in rules.NORMALIZATION_CHANGES.values())

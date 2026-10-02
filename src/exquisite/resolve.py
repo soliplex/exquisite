@@ -23,12 +23,16 @@ Anything ambiguous or absent is left unresolved with the reason, because those
 are the cases that genuinely need a person.
 """
 
+import json
 import os
+import pathlib
 import urllib.parse
-from pathlib import Path
 
-from exquisite.rules import BUILTIN_RULES
-from exquisite.rules import Rules
+import yaml
+
+from exquisite import corpus as corpus_mod
+from exquisite import rules as rules_mod
+from exquisite import worksheets
 
 
 def _basename(uri: str) -> str:
@@ -100,19 +104,13 @@ def resolve_worksheet(worksheet: dict, corpus) -> tuple[dict, dict]:
 
 def resolve_file(
     *,
-    worksheet_path: Path,
+    worksheet_path: pathlib.Path,
     root,
     corpus,
     generated: str,
-    rules: Rules = BUILTIN_RULES,
+    rules: rules_mod.Rules = rules_mod.BUILTIN_RULES,
 ) -> dict:
     """Fill in a URI-referenced worksheet, leaving the attestation blank."""
-    import json
-
-    import yaml
-
-    from exquisite import corpus as corpus_mod
-    from exquisite import worksheets
 
     loaded = yaml.safe_load(worksheet_path.read_text())
     answers, tally = resolve_worksheet(loaded, corpus)
