@@ -5,12 +5,13 @@ Two files that are a pair, sharing a stem:
     ingestion/<corpus_name>.csv    one row per document, every field quoted
     ingestion/<corpus_name>.yaml   what this ingestion is; where it came from
 
-The CSV is purely tabular -- ``"uri","sha256","source_url","document_identifier"``
--- because a table is what diffs well:  one line per document means a re-ingest
-adding three documents is a three-line diff.  Everything that describes the
-ingestion as a whole (the source database and its path, when it was extracted,
-and the embedding and chunking substrate it was built with) lives in the YAML
-sidecar, where it is written once instead of being smeared across every row.
+The CSV is purely tabular --
+``"uri","sha256","source_url","document_identifier"`` -- because a table is
+what diffs well:  one line per document means a re-ingest adding three
+documents is a three-line diff.  Everything that describes the ingestion as a
+whole (the source database and its path, when it was extracted, and the
+embedding and chunking substrate it was built with) lives in the YAML sidecar,
+where it is written once instead of being smeared across every row.
 
 The sidecar's ``documents:`` count must match the CSV's row count.  That is
 cheap and catches a truncated extraction, which would otherwise look exactly
@@ -31,11 +32,12 @@ uses.
 Neither durable column is universally populated, but a document needs at
 least one of them:  the pair is complete where either alone is not.
 
-`document_identifier` is the publication designator (`"ISO/IEC 27001:2022"`).  Where present it is far better evidence than any filename comparison,
-but not all of it is equally good, so two more columns say where it came from:
+`document_identifier` is the publication designator (`"ISO/IEC 27001:2022"`).
+Where present it is far better evidence than any filename comparison, but not
+all of it is equally good, so two more columns say where it came from:
 
-- `identifier_source` -- ``llm`` when the ingestion-time identifier
-  inference supplied it, ``override`` when someone mapped it by hand, ``unrecorded`` when
+- `identifier_source` -- ``llm`` when the ingestion-time identifier inference
+  supplied it, ``override`` when someone mapped it by hand, ``unrecorded`` when
   an identifier is present with no recorded source, and empty when there is no
   identifier at all.  An ``unrecorded`` identifier has no recorded source, and
   is therefore not trusted.
@@ -49,7 +51,8 @@ identifiers have an unknown source, and so are never `trusted_identifier`.
 
 import collections
 import csv
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
 
 COLUMNS = (
@@ -91,7 +94,8 @@ def write(path: Path, documents) -> None:
                     "document_identifier": doc.document_identifier,
                     "identifier_source": doc.identifier_source,
                     "identifier_certainty": (
-                        "" if doc.identifier_certainty is None
+                        ""
+                        if doc.identifier_certainty is None
                         else str(doc.identifier_certainty)
                     ),
                 }
@@ -110,13 +114,13 @@ def _certainty(value) -> int | None:
 
 
 def from_metadata(uri: str, metadata: dict) -> "Document":
-    """A manifest row from one ``document_meta`` row's ``uri`` and ``metadata``.
+    """A manifest row from a ``document_meta`` row's ``uri`` and ``metadata``.
 
     The one place the provenance rule lives, so every extraction applies it the
     same way:  an identifier with no recorded `identifier_source` is
-    ``unrecorded``, and a source or certainty without an identifier is dropped --
-    ``identify`` stores a block even for documents it could not identify, so a
-    lone source means nothing.
+    ``unrecorded``, and a source or certainty without an identifier is dropped
+    -- ``identify`` stores a block even for documents it could not identify, so
+    a lone source means nothing.
     """
     identifier = (metadata.get("document_identifier") or "").strip()
     source = (metadata.get("identifier_source") or "") if identifier else ""
@@ -128,7 +132,9 @@ def from_metadata(uri: str, metadata: dict) -> "Document":
         document_identifier=identifier,
         identifier_source=(source or UNRECORDED) if identifier else "",
         identifier_certainty=(
-            _certainty(metadata.get("identifier_certainty")) if identifier else None
+            _certainty(metadata.get("identifier_certainty"))
+            if identifier
+            else None
         ),
     )
 
@@ -164,7 +170,7 @@ class Document:
 
     @property
     def identifier_evidence(self) -> str:
-        """Where the identifier came from, for a reader:  ``llm certainty 5``."""
+        """Where the identifier came from, for people: ``llm certainty 5``."""
         if not self.document_identifier:
             return ""
 
@@ -172,7 +178,10 @@ class Document:
             return "source unknown"
 
         if self.identifier_certainty is not None:
-            return f"{self.identifier_source} certainty {self.identifier_certainty}"
+            return (
+                f"{self.identifier_source} certainty "
+                f"{self.identifier_certainty}"
+            )
 
         return self.identifier_source
 
@@ -181,11 +190,10 @@ class Document:
         """The `#attachment=` fragment, decoded, or "" for a whole document.
 
         Load-bearing, not decoration:  an attachment inherits its *parent's*
-        `sha256` and `source_url`, so one hash can cover a document plus dozens of
-        attachments.  So
-        the fragment is the only thing distinguishing an attachment from its
-        parent and from its siblings, and it must be part of the identity or
-        binding will silently resolve to the wrong document.
+        `sha256` and `source_url`, so one hash can cover a document plus dozens
+        of attachments.  So the fragment is the only thing distinguishing an
+        attachment from its parent and from its siblings, and it must be part
+        of the identity or binding will silently resolve to the wrong document.
 
         The fragment derives from the attachment's own name rather than the
         ingestion's file layout, so it survives re-ingestion as the durable
@@ -200,11 +208,13 @@ class Document:
 
     @property
     def name(self) -> str:
-        """The document's basename, decoded, for a human reading a worksheet."""
+        """The document's basename, decoded, for a reader of a worksheet."""
         import os
         import urllib.parse
 
-        return self.attachment or urllib.parse.unquote(os.path.basename(self.uri))
+        return self.attachment or urllib.parse.unquote(
+            os.path.basename(self.uri)
+        )
 
     def durable(self) -> dict:
         """The identity a worksheet stores:  stable across re-ingestion."""
@@ -222,6 +232,33 @@ class Document:
 
 class ManifestError(Exception):
     """The manifest pair is inconsistent or incomplete."""
+
+
+class MissingSidecar(ManifestError):
+    """A manifest CSV without its YAML sidecar."""
+
+    def __init__(self, table: str, sidecar: str):
+        self.table = table
+        self.sidecar = sidecar
+        super().__init__(
+            f"{table} has no sidecar {sidecar}; the two are a pair, "
+            "so regenerate both rather than reading the table alone"
+        )
+
+
+class RowCountMismatch(ManifestError):
+    """The CSV's row count disagrees with the sidecar's ``documents:``."""
+
+    def __init__(self, table: str, rows: int, sidecar: str, declared: int):
+        self.table = table
+        self.rows = rows
+        self.sidecar = sidecar
+        self.declared = declared
+        super().__init__(
+            f"{table} holds {rows} rows but {sidecar} declares {declared} "
+            "documents -- a truncated extraction looks exactly like a corpus "
+            "that shrank, so this is refused"
+        )
 
 
 @dataclass
@@ -245,10 +282,13 @@ class Corpus:
         """Keyed by ``(sha256, attachment)`` -- a hash alone is not unique.
 
         The value is a *list*:  a corpus can hold byte-identical documents at
-        several paths (one `README.txt` copied into several directories, say), and retrieval
-        returning any of them is equally correct, so a label must bind to all.
+        several paths (one `README.txt` copied into several directories, say),
+        and retrieval returning any of them is equally correct, so a label must
+        bind to all.
         """
-        found: dict[tuple[str, str], list[Document]] = collections.defaultdict(list)
+        found: dict[tuple[str, str], list[Document]] = collections.defaultdict(
+            list
+        )
 
         for doc in self.documents:
             if doc.sha256:
@@ -258,7 +298,9 @@ class Corpus:
 
     def by_source_url(self) -> dict[tuple[str, str], list[Document]]:
         """Keyed by ``(source_url, attachment)``, for the same reasons."""
-        found: dict[tuple[str, str], list[Document]] = collections.defaultdict(list)
+        found: dict[tuple[str, str], list[Document]] = collections.defaultdict(
+            list
+        )
 
         for doc in self.documents:
             if doc.source_url:
@@ -285,10 +327,7 @@ def load(path: Path) -> Corpus:
     sidecar = path.with_suffix(".yaml")
 
     if not sidecar.exists():
-        raise ManifestError(
-            f"{path.name} has no sidecar {sidecar.name}; the two are a pair, "
-            "so regenerate both rather than reading the table alone"
-        )
+        raise MissingSidecar(path.name, sidecar.name)
 
     about = yaml.safe_load(sidecar.read_text()) or {}
     documents = []
@@ -302,17 +341,17 @@ def load(path: Path) -> Corpus:
                     source_url=row.get("source_url") or "",
                     document_identifier=row.get("document_identifier") or "",
                     identifier_source=row.get("identifier_source") or "",
-                    identifier_certainty=_certainty(row.get("identifier_certainty")),
+                    identifier_certainty=_certainty(
+                        row.get("identifier_certainty")
+                    ),
                 )
             )
 
     declared = about.get("documents")
 
     if declared is not None and declared != len(documents):
-        raise ManifestError(
-            f"{path.name} holds {len(documents)} rows but {sidecar.name} "
-            f"declares {declared} documents -- a truncated extraction looks "
-            "exactly like a corpus that shrank, so this is refused"
+        raise RowCountMismatch(
+            path.name, len(documents), sidecar.name, declared
         )
 
     return Corpus(
@@ -325,11 +364,11 @@ def load(path: Path) -> Corpus:
 def resolve(corpus: Corpus, wanted: dict) -> tuple[list[Document], str]:
     """Find the documents a worksheet entry names, and say how.
 
-    Returns ``(documents, how)`` where ``how`` is ``"sha256"``, ``"source_url"``,
-    ``"changed"``, or a reason nothing was found.  The distinction matters:  a
-    `sha256` miss with a `source_url` hit means the document at that location
-    *changed*, which the SME should look at, while both missing means it is
-    gone.
+    Returns ``(documents, how)`` where ``how`` is ``"sha256"``,
+    ``"source_url"``, ``"changed"``, or a reason nothing was found.  The
+    distinction matters:  a `sha256` miss with a `source_url` hit means the
+    document at that location *changed*, which the SME should look at, while
+    both missing means it is gone.
 
     More than one document comes back when the corpus holds byte-identical
     copies at different paths.

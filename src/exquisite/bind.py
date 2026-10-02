@@ -29,8 +29,10 @@ Confirming it is deleting that line.
 import json
 from pathlib import Path
 
-from exquisite.manifest import Corpus, resolve
-from exquisite.worksheets import PROVISIONAL, UNFILLED
+from exquisite.manifest import Corpus
+from exquisite.manifest import resolve
+from exquisite.worksheets import PROVISIONAL
+from exquisite.worksheets import UNFILLED
 
 #: Written alongside the existing prose `reference`, never replacing it.
 LABEL_KEY = "relevant_uris"
@@ -41,6 +43,31 @@ PRUNED_SUFFIX = "_pruned"
 
 class WorksheetError(Exception):
     """The worksheet cannot be applied as it stands."""
+
+
+class NoWorksheet(WorksheetError):
+    """No worksheet pairs the question set with the corpus."""
+
+    def __init__(self, corpus_name: str, question_set: str):
+        self.corpus_name = corpus_name
+        self.question_set = question_set
+        super().__init__(
+            f"{corpus_name} has no worksheet for {question_set!r}; "
+            "create one with `add-worksheet`"
+        )
+
+
+class NoParentWorksheet(WorksheetError):
+    """A pruned set's parent has no worksheet to label it from."""
+
+    def __init__(self, corpus_name: str, parent: str, question_set: str):
+        self.corpus_name = corpus_name
+        self.parent = parent
+        self.question_set = question_set
+        super().__init__(
+            f"{corpus_name} has no worksheet for {parent!r}, which is "
+            f"what would label {question_set!r}"
+        )
 
 
 def _entries(worksheet: dict) -> dict[str, dict]:
@@ -59,28 +86,37 @@ def check(worksheet: dict) -> list[str]:
             problems.append(f"{designator!r}: documents not filled in")
         elif entry.get(PROVISIONAL):
             problems.append(
-                f"{designator!r}: provisional answer not yet confirmed -- check it, "
-                f"then delete its `{PROVISIONAL}:` line"
+                f"{designator!r}: provisional answer not yet confirmed -- "
+                f"check it, then delete its `{PROVISIONAL}:` line"
             )
         elif isinstance(documents, str):
-            problems.append(f"{designator!r}: documents must be a list, got a string")
+            problems.append(
+                f"{designator!r}: documents must be a list, got a string"
+            )
         elif not documents and not (entry.get("unresolved") or "").strip():
             problems.append(
-                f"{designator!r}: empty documents needs `unresolved` to say why"
+                f"{designator!r}: empty documents needs "
+                "`unresolved` to say why"
             )
         else:
             for item in documents:
                 if not isinstance(item, dict):
-                    problems.append(f"{designator!r}: each document must be a mapping")
+                    problems.append(
+                        f"{designator!r}: each document must be a mapping"
+                    )
                 elif not (item.get("sha256") or item.get("source_url")):
                     problems.append(
-                        f"{designator!r}: {item.get('name', '?')!r} has neither "
+                        f"{designator!r}: "
+                        f"{item.get('name', '?')!r} has neither "
                         "sha256 nor source_url, so it cannot be bound"
                     )
 
     for reference, designator in sorted(worksheet["apply_keys"].items()):
         if designator not in entries:
-            problems.append(f"apply_key {reference!r} names unknown designator {designator!r}")
+            problems.append(
+                f"apply_key {reference!r} names unknown designator "
+                f"{designator!r}"
+            )
 
     return problems
 
@@ -99,7 +135,6 @@ def bind(
     A document whose hash misses but whose source_url hits is reported as
     ``changed`` -- the file at that location is not the one the SME approved.
     """
-    entries = _entries(worksheet)
     keys = worksheet["apply_keys"]
     tally = {
         "labelled": 0,
@@ -120,7 +155,8 @@ def bind(
 
             if not documents:
                 tally["unbound"].append(
-                    f"{entry['designator']!r}: {item.get('name', '?')} -- {how}"
+                    f"{entry['designator']!r}: "
+                    f"{item.get('name', '?')} -- {how}"
                 )
                 continue
 
@@ -177,10 +213,7 @@ def worksheet_for(corpus_dir, question_set):
         return own, None
 
     if not question_set.is_pruned:
-        raise WorksheetError(
-            f"{corpus_dir.name} has no worksheet for {question_set.name!r}; "
-            "create one with `add-worksheet`"
-        )
+        raise NoWorksheet(corpus_dir.name, question_set.name)
 
     from exquisite import corpus as corpus_mod
 
@@ -190,9 +223,8 @@ def worksheet_for(corpus_dir, question_set):
     path = corpus_dir.worksheet_for(parent)
 
     if not path.exists():
-        raise WorksheetError(
-            f"{corpus_dir.name} has no worksheet for {parent.name!r}, which is "
-            f"what would label {question_set.name!r}"
+        raise NoParentWorksheet(
+            corpus_dir.name, parent.name, question_set.name
         )
 
     return path, parent
@@ -205,7 +237,7 @@ def bind_file(
     root: Path,
     corpus: Corpus,
 ) -> tuple[dict, dict]:
-    """Bind one question set against one ingestion; return ``(document, tally)``.
+    """Bind one question set to one ingestion:  ``(document, tally)``.
 
     Nothing is written here.  The canonical question set holds no
     corpus-specific data by design -- the same set is scored against more than
@@ -221,7 +253,8 @@ def bind_file(
 
     if problems:
         raise WorksheetError(
-            f"{worksheet_path.name} is not ready to bind:\n  " + "\n  ".join(problems)
+            f"{worksheet_path.name} is not ready to bind:\n  "
+            + "\n  ".join(problems)
         )
 
     document = json.loads(question_set.path.read_text())
@@ -241,11 +274,11 @@ def bind_file(
 
 
 def _carry_labels(parent: list[dict], derived: list[dict]) -> int:
-    """Copy `relevant_uris` from parent cases onto their derived counterparts."""
+    """Copy parent cases' `relevant_uris` onto their derived counterparts."""
     labels = {
-        (case.get("metadata") or {}).get("uuid"): (case.get("metadata") or {}).get(
-            LABEL_KEY
-        )
+        (case.get("metadata") or {}).get("uuid"): (
+            case.get("metadata") or {}
+        ).get(LABEL_KEY)
         for case in parent
     }
     carried = 0

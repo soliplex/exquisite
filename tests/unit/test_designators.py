@@ -2,7 +2,8 @@
 
 import pytest
 
-from exquisite.designators import collapsed_key, extension
+from exquisite.designators import collapsed_key
+from exquisite.designators import extension
 
 
 class TestCollapsedKey:
@@ -49,9 +50,13 @@ class TestExtension:
     @pytest.mark.parametrize(
         "designator, identifier",
         [
-            ("NIST SP 800-5", "NIST SP 800-53"),  # a different number, not a part
+            (
+                "NIST SP 800-5",
+                "NIST SP 800-53",
+            ),  # a different number, not a part
             ("NIST SP 800-53A", "NIST SP 800-53AB"),  # a different word
             ("IEC 61508", "IEC 61508"),  # identical, not extended
+            ("IEC 61508", "IEC 615"),  # shorter than the key
             ("ISO 9001", "NIST SP 800-53"),  # unrelated
         ],
     )

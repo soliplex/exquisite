@@ -1,4 +1,4 @@
-"""Corpus management for RAG databases: manifests, worksheets, and evaluation labels."""
+"""Corpus management for RAG databases: manifests, worksheets, labels."""
 
 import argparse
 import datetime
@@ -7,21 +7,33 @@ import sys
 from pathlib import Path
 
 
+class NotADataRoot(argparse.ArgumentTypeError):
+    """A ``--root`` lacking ``questions/`` or ``corpus/``."""
+
+    def __init__(self, root: Path, missing: list[str]):
+        self.root = root
+        self.missing = missing
+        wanted = " or ".join(f"{name}/" for name in missing)
+        super().__init__(
+            f"{root} has no {wanted}; run from a data repository, "
+            "or pass --root / set EXQUISITE_ROOT"
+        )
+
+
 def _data_root(path: str) -> Path:
-    """A directory holding ``questions/`` and ``corpus/``, or an argparse error.
+    """A directory holding ``questions/`` and ``corpus/``, else `NotADataRoot`.
 
     The package is installed separately from the data it manages, so there is
     no checkout to default to:  the root is the working directory unless
     ``--root`` or ``EXQUISITE_ROOT`` names another.
     """
     root = Path(path).resolve()
-    missing = [name for name in ("questions", "corpus") if not (root / name).is_dir()]
+    missing = [
+        name for name in ("questions", "corpus") if not (root / name).is_dir()
+    ]
 
     if missing:
-        raise argparse.ArgumentTypeError(
-            f"{root} has no {' or '.join(name + '/' for name in missing)}; run from "
-            "a data repository, or pass --root / set EXQUISITE_ROOT"
-        )
+        raise NotADataRoot(root, missing)
 
     return root
 
@@ -50,7 +62,10 @@ def _refresh_worksheets(args: argparse.Namespace) -> int:
 
     for path, designators, kept, dropped, _ in changed:
         note = f"  {dropped} answer(s) dropped" if dropped else ""
-        print(f"{designators:4d} designators  {kept:4d} answers kept{note}  {path}")
+        print(
+            f"{designators:4d} designators  {kept:4d} answers kept"
+            f"{note}  {path}"
+        )
 
     unchanged = len(done) - len(changed)
 
@@ -58,7 +73,9 @@ def _refresh_worksheets(args: argparse.Namespace) -> int:
         print(f"{unchanged} worksheet(s) already current")
 
     if not done:
-        print("no worksheets found; use `add-worksheet` to pair a question set")
+        print(
+            "no worksheets found; use `add-worksheet` to pair a question set"
+        )
 
     return 0
 
@@ -169,7 +186,8 @@ def _bind(args: argparse.Namespace) -> int:
     if args.out:
         args.out.write_text(text)
         print(
-            f"{tally['labelled']:4d} labelled  {tally['unresolved']:4d} unresolved  "
+            f"{tally['labelled']:4d} labelled  "
+            f"{tally['unresolved']:4d} unresolved  "
             f"{tally['no_reference']:3d} no-reference  -> {args.out}"
         )
     else:
@@ -187,8 +205,8 @@ def main() -> None:
             "--provisional",
             action="store_true",
             help=(
-                "pre-fill unanswered designators from trusted identifier matches, "
-                "marked `provisional:` until a person confirms them"
+                "pre-fill unanswered designators from trusted identifier "
+                "matches, marked `provisional:` until a person confirms them"
             ),
         )
 
@@ -218,7 +236,9 @@ def main() -> None:
         help="rebuild candidates and apply keys, keeping the SME's answers",
     )
     refresh.add_argument(
-        "--corpus", action="append", help="corpus name; repeatable, defaults to all"
+        "--corpus",
+        action="append",
+        help="corpus name; repeatable, defaults to all",
     )
     add_common(refresh)
     add_provisional(refresh)
@@ -236,10 +256,14 @@ def main() -> None:
 
     resolve = sub.add_parser(
         "resolve-references",
-        help="fill in worksheets whose question set already cites document URIs",
+        help=(
+            "fill in worksheets whose question set already cites document URIs"
+        ),
     )
     resolve.add_argument(
-        "--corpus", action="append", help="corpus name; repeatable, defaults to all"
+        "--corpus",
+        action="append",
+        help="corpus name; repeatable, defaults to all",
     )
     add_common(resolve)
     resolve.set_defaults(func=_resolve_references)
@@ -249,7 +273,9 @@ def main() -> None:
         help="write one question set with `relevant_uris` for one ingestion",
     )
     bind_cmd.add_argument("--corpus", required=True, help="corpus name")
-    bind_cmd.add_argument("--questions", required=True, help="question set stem")
+    bind_cmd.add_argument(
+        "--questions", required=True, help="question set stem"
+    )
     bind_cmd.add_argument(
         "--out",
         type=Path,

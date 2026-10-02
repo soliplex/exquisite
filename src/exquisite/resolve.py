@@ -1,10 +1,10 @@
 """Resolving a question set whose references are already document URIs.
 
-Some sets cite their sources this way.  Their references name a
-file outright -- ``file:///downloads/<corpus_name>/<doc_id>.pdf`` -- so there is
-nothing for an SME to decide:  the author already picked the document.  What is
-needed is a *translation* into the durable form a worksheet records, so the
-label survives the corpus being re-ingested under different paths.
+Some sets cite their sources this way.  Their references name a file outright
+-- ``file:///downloads/<corpus_name>/<doc_id>.pdf`` -- so there is nothing for
+an SME to decide:  the author already picked the document.  What is needed is a
+*translation* into the durable form a worksheet records, so the label survives
+the corpus being re-ingested under different paths.
 
 That is not the "never auto-assign" case.  Inferring a document from
 ``NIST SP 800-53 Rev. 5`` is a guess, and a wrong guess makes correct retrieval
@@ -31,7 +31,9 @@ from pathlib import Path
 def _basename(uri: str) -> str:
     head = uri.split("#attachment=", 1)
 
-    return os.path.basename(urllib.parse.unquote(head[-1] if len(head) > 1 else head[0]))
+    return os.path.basename(
+        urllib.parse.unquote(head[-1] if len(head) > 1 else head[0])
+    )
 
 
 def resolve_worksheet(worksheet: dict, corpus) -> tuple[dict, dict]:
@@ -81,7 +83,8 @@ def resolve_worksheet(worksheet: dict, corpus) -> tuple[dict, dict]:
         note = (
             "resolved from the reference URI"
             if how == "exact"
-            else "resolved by filename; the corpus moved and the reference path is stale"
+            else "resolved by filename; the corpus moved and the reference "
+            "path is stale"
         )
         answers[name] = {
             "documents": [doc.durable() for doc in found],
@@ -92,7 +95,9 @@ def resolve_worksheet(worksheet: dict, corpus) -> tuple[dict, dict]:
     return answers, tally
 
 
-def resolve_file(*, worksheet_path: Path, root, corpus, generated: str) -> dict:
+def resolve_file(
+    *, worksheet_path: Path, root, corpus, generated: str
+) -> dict:
     """Fill in a URI-referenced worksheet, leaving the attestation blank."""
     import json
 
@@ -105,7 +110,9 @@ def resolve_file(*, worksheet_path: Path, root, corpus, generated: str) -> dict:
     answers, tally = resolve_worksheet(loaded, corpus)
 
     if not answers and not tally["unresolved"]:
-        tally["skipped"] = "references are not URIs; use the worksheet interview"
+        tally["skipped"] = (
+            "references are not URIs; use the worksheet interview"
+        )
 
         return tally
 
