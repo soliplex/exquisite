@@ -20,12 +20,6 @@ each question.
 uv tool install exquisite
 ```
 
-Until the first release is on PyPI, install from the repository:
-
-```bash
-uv tool install git+https://github.com/soliplex/exquisite
-```
-
 ## Development
 
 ```bash
