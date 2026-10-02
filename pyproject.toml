@@ -22,5 +22,84 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "pytest>=9.1.1",
+    "coverage >= 7.13.5, < 7.14",
+    "pytest >= 9.0.2, < 9.1",
+    "pytest-cov >= 7.0.0, < 7.1",
+    "ruff >= 0.16.6, < 0.17",
 ]
+docs = [
+    "zensical>=0.0.43",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "tests/unit"]
+python_files = "test_*.py"
+# skip 'tests/functional' by default
+testpaths = ["tests/unit"]
+# 'src/soliplex' (a path), not 'soliplex' (the importable name):
+# 'soliplex' is a namespace package, and coverage cannot enumerate one
+# by walking the filesystem, so a package-name target silently measures
+# only the modules some test happened to import.  A path target reports
+# never-imported modules at 0%, which is what makes 'omit' below the
+# single place that decides what is exempt.
+addopts = "--cov=src/exquisite --cov=tests/unit --cov-branch --cov-fail-under=100"
+filterwarnings = [
+    # "ignore::DeprecationWarning:<source-package>",
+]
+
+[tool.coverage.run]
+omit = [
+    # add as needed
+]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.ruff]
+line-length = 79
+exclude = [
+    "*.md",  # ruff 0.16 formats Python in Markdown fences
+]
+force-exclude = true
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    # flake8
+    "F",
+    # pycodestyle
+    "E",
+    # flake8-bugbear
+    "B",
+    # pyupgrade
+    "U",
+    # isort
+    "I",
+    # pandas vet
+    "PD",
+    # tryceratops
+    "TRY",
+    # flake8-pytest-style
+    "PT",
+]
+ignore = [
+    "PT019",  # incorrecly flags '@mock.patch' args as fixtures
+]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+known-third-party = ["alembic"]
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-names-type = "csv"
+
+[tool.pymarkdown]
+extensions.front-matter.enabled = true
+plugins.line-length.enabled = false             # md013
+plugins.no-duplicate-heading.enabled = false    # md024
+plugins.no-inline-html.enabled = false          # md033
+plugins.no-emphasis-as-heading.enabled = false  # md036
+plugins.first-line-heading.enabled = false      # md041
+plugins.code-block-style.enabled = false        # md046
+# There is no rule 'md060'
+# plugins.md060.enabled = false                 # md060

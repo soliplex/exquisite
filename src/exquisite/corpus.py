@@ -36,6 +36,56 @@ from pathlib import Path
 PRUNED_SUFFIX = "_pruned"
 
 
+class UnknownQuestionSet(FileNotFoundError):
+    """No question set has the requested name."""
+
+    def __init__(self, name: str, known: str):
+        self.name = name
+        self.known = known
+        super().__init__(f"no question set {name!r}; have {known}")
+
+
+class UnknownCorpus(FileNotFoundError):
+    """No corpus directory has the requested name."""
+
+    def __init__(self, name: str, known: str):
+        self.name = name
+        self.known = known
+        super().__init__(f"no corpus {name!r}; have {known}")
+
+
+class NoIngestion(FileNotFoundError):
+    """A corpus directory holds no ingestion manifest."""
+
+    def __init__(self, corpus_name: str):
+        self.corpus_name = corpus_name
+        super().__init__(f"{corpus_name}: no ingestion manifest")
+
+
+class UnknownIngestion(FileNotFoundError):
+    """A corpus has no ingestion manifest of the requested name."""
+
+    def __init__(self, corpus_name: str, name: str, known: list[str]):
+        self.corpus_name = corpus_name
+        self.name = name
+        self.known = known
+        super().__init__(
+            f"{corpus_name}: no ingestion {name!r}; have " + ", ".join(known)
+        )
+
+
+class AmbiguousIngestion(ValueError):
+    """Several ingestions, and none named:  picking one would be a guess."""
+
+    def __init__(self, corpus_name: str, known: list[str]):
+        self.corpus_name = corpus_name
+        self.known = known
+        super().__init__(
+            f"{corpus_name}: {len(known)} ingestions -- name one of "
+            + ", ".join(known)
+        )
+
+
 @dataclass(frozen=True)
 class QuestionSet:
     path: Path
@@ -59,9 +109,12 @@ class QuestionSet:
         return str(self.path.relative_to(self.root))
 
 
-def question_sets(root: Path, *, include_pruned: bool = False) -> list[QuestionSet]:
+def question_sets(
+    root: Path, *, include_pruned: bool = False
+) -> list[QuestionSet]:
     found = [
-        QuestionSet(path, root) for path in sorted((root / "questions").glob("*.json"))
+        QuestionSet(path, root)
+        for path in sorted((root / "questions").glob("*.json"))
     ]
 
     return [item for item in found if include_pruned or not item.is_pruned]
@@ -77,7 +130,7 @@ def find_question_set(root: Path, name: str) -> QuestionSet:
 
     known = ", ".join(item.name for item in question_sets(root))
 
-    raise FileNotFoundError(f"no question set {stem!r}; have {known}")
+    raise UnknownQuestionSet(stem, known)
 
 
 @dataclass(frozen=True)
@@ -110,21 +163,17 @@ class CorpusDir:
             wanted = self.path / "ingestion" / f"{name}.csv"
 
             if not wanted.exists():
-                raise FileNotFoundError(
-                    f"{self.name}: no ingestion {name!r}; have "
-                    + ", ".join(path.stem for path in found)
+                raise UnknownIngestion(
+                    self.name, name, [path.stem for path in found]
                 )
 
             return wanted
 
         if not found:
-            raise FileNotFoundError(f"{self.name}: no ingestion manifest")
+            raise NoIngestion(self.name)
 
         if len(found) > 1:
-            raise ValueError(
-                f"{self.name}: {len(found)} ingestions -- name one of "
-                + ", ".join(path.stem for path in found)
-            )
+            raise AmbiguousIngestion(self.name, [path.stem for path in found])
 
         return found[0]
 
@@ -132,7 +181,11 @@ class CorpusDir:
 def discover(root: Path) -> list[CorpusDir]:
     base = root / "corpus"
 
-    return [CorpusDir(path, root) for path in sorted(base.iterdir()) if path.is_dir()]
+    return [
+        CorpusDir(path, root)
+        for path in sorted(base.iterdir())
+        if path.is_dir()
+    ]
 
 
 def find(root: Path, name: str) -> CorpusDir:
@@ -141,6 +194,6 @@ def find(root: Path, name: str) -> CorpusDir:
     if not path.is_dir():
         known = ", ".join(item.name for item in discover(root))
 
-        raise FileNotFoundError(f"no corpus {name!r}; have {known}")
+        raise UnknownCorpus(name, known)
 
     return CorpusDir(path, root)

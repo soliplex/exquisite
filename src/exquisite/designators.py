@@ -35,6 +35,7 @@ _LOCATION = re.compile(
     re.I,
 )
 
+
 def designator(reference: str) -> str:
     """The document-naming part of a ``reference``.
 
@@ -49,7 +50,9 @@ def designator(reference: str) -> str:
         import urllib.parse
 
         head = reference.split("#attachment=", 1)
-        name = os.path.basename(urllib.parse.unquote(head[-1] if len(head) > 1 else head[0]))
+        name = os.path.basename(
+            urllib.parse.unquote(head[-1] if len(head) > 1 else head[0])
+        )
 
         return name or reference
 
@@ -63,8 +66,8 @@ def designator(reference: str) -> str:
 
 def _normalized(text: str) -> str:
     """Lower-cased, with the known equivalences applied but spacing intact."""
-    out = text.casefold().replace("_", " ")           # "_" is a separator here
-    out = re.sub(r"\bvol(?:ume)?\.?\s*", "v", out)     # "Vol 3" -> "v3"
+    out = text.casefold().replace("_", " ")  # "_" is a separator here
+    out = re.sub(r"\bvol(?:ume)?\.?\s*", "v", out)  # "Vol 3" -> "v3"
     # "Supplement", "Suppl", "Sup" -> "supp", as `identify` writes it.
     out = re.sub(r"\b(?:sup|supp|suppl|supplement)\b", "supp", out)
 
@@ -118,7 +121,9 @@ def extension(key: str, text: str) -> str | None:
 
     starts_at_separator = not rest[0].isalnum()
     last, following = key[-1], rest[0]
-    changes_kind = following.isalnum() and last.isdigit() != following.isdigit()
+    changes_kind = (
+        following.isalnum() and last.isdigit() != following.isdigit()
+    )
 
     return collapsed_rest if starts_at_separator or changes_kind else None
 
