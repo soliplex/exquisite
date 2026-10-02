@@ -27,14 +27,14 @@ Confirming it is deleting that line.
 """
 
 import json
-from pathlib import Path
+import pathlib
 
-from exquisite.manifest import Corpus
-from exquisite.manifest import resolve
-from exquisite.rules import BUILTIN_RULES
-from exquisite.rules import Rules
-from exquisite.worksheets import PROVISIONAL
-from exquisite.worksheets import UNFILLED
+import yaml
+
+from exquisite import corpus as corpus_mod
+from exquisite import manifest
+from exquisite import rules as rules_mod
+from exquisite import worksheets
 
 #: Written alongside the existing prose `reference`, never replacing it.
 LABEL_KEY = "relevant_uris"
@@ -84,12 +84,12 @@ def check(worksheet: dict) -> list[str]:
     for designator, entry in sorted(entries.items()):
         documents = entry.get("documents")
 
-        if documents == UNFILLED or documents is None:
+        if documents == worksheets.UNFILLED or documents is None:
             problems.append(f"{designator!r}: documents not filled in")
-        elif entry.get(PROVISIONAL):
+        elif entry.get(worksheets.PROVISIONAL):
             problems.append(
                 f"{designator!r}: provisional answer not yet confirmed -- "
-                f"check it, then delete its `{PROVISIONAL}:` line"
+                f"check it, then delete its `{worksheets.PROVISIONAL}:` line"
             )
         elif isinstance(documents, str):
             problems.append(
@@ -127,8 +127,8 @@ def bind(
     worksheet: dict,
     cases: list[dict],
     *,
-    corpus: Corpus,
-    rules: Rules = BUILTIN_RULES,
+    corpus: manifest.Corpus,
+    rules: rules_mod.Rules = rules_mod.BUILTIN_RULES,
 ) -> tuple[list[dict], dict]:
     """Return ``(cases, tally)`` with ``relevant_uris`` written where resolved.
 
@@ -160,7 +160,7 @@ def bind(
         uris = []
 
         for item in entry.get("documents") or []:
-            documents, how = resolve(corpus, item)
+            documents, how = manifest.resolve(corpus, item)
 
             if not documents:
                 tally["unbound"].append(
@@ -224,8 +224,6 @@ def worksheet_for(corpus_dir, question_set):
     if not question_set.is_pruned:
         raise NoWorksheet(corpus_dir.name, question_set.name)
 
-    from exquisite import corpus as corpus_mod
-
     parent = corpus_mod.find_question_set(
         question_set.root, question_set.name[: -len(PRUNED_SUFFIX)]
     )
@@ -243,9 +241,9 @@ def bind_file(
     *,
     corpus_dir,
     question_set,
-    root: Path,
-    corpus: Corpus,
-    rules: Rules = BUILTIN_RULES,
+    root: pathlib.Path,
+    corpus: manifest.Corpus,
+    rules: rules_mod.Rules = rules_mod.BUILTIN_RULES,
 ) -> tuple[dict, dict]:
     """Bind one question set to one ingestion:  ``(document, tally)``.
 
@@ -255,7 +253,6 @@ def bind_file(
     than a property of it -- and a binding goes stale as soon as its ingestion
     is replaced.  So it is produced when wanted and handed to the caller.
     """
-    import yaml
 
     worksheet_path, parent = worksheet_for(corpus_dir, question_set)
     worksheet = yaml.safe_load(worksheet_path.read_text())

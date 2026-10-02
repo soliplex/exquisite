@@ -17,20 +17,18 @@ LanceDB directly, so this runs anywhere.  See the README for producing one.
 
 import collections
 import functools
+import hashlib
 import json
 import os
+import pathlib
 import re
-from pathlib import Path
 
-from exquisite.designators import collapsed_key
-from exquisite.designators import designator
-from exquisite.designators import extension
-from exquisite.designators import numbers
-from exquisite.designators import series
-from exquisite.manifest import Corpus
-from exquisite.rules import BUILTIN_RULES
-from exquisite.rules import NORMALIZATION_VERSION
-from exquisite.rules import Rules
+import yaml
+
+from exquisite import corpus as corpus_mod
+from exquisite import designators
+from exquisite import manifest as manifest_mod
+from exquisite import rules as rules_mod
 
 #: Placeholder left for the SME.  Deliberately not a list, so an applier fails
 #: loudly on an unfilled entry rather than reading it as "no documents".
@@ -102,7 +100,7 @@ _APPLY_KEYS_LEGEND = """\
 class WorksheetExists(FileExistsError):
     """The pairing already exists, so it is refreshed, never re-created."""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: pathlib.Path):
         self.path = path
         super().__init__(f"{path} already exists; refresh it instead")
 
@@ -161,7 +159,7 @@ def _document_lines(
     return lines
 
 
-def _flags(uri: str, rules: Rules = BUILTIN_RULES) -> str:
+def _flags(uri: str, rules: rules_mod.Rules = rules_mod.BUILTIN_RULES) -> str:
     notes = []
 
     if "#attachment=" in uri:
@@ -196,7 +194,7 @@ def _is_subsequence(wanted: list[str], within: list[str]) -> bool:
 
 
 def relation(
-    key: str, identifier: str, rules: Rules = BUILTIN_RULES
+    key: str, identifier: str, rules: rules_mod.Rules = rules_mod.BUILTIN_RULES
 ) -> str | None:
     """How a document whose identifier extends a designator's key relates.
 
@@ -206,7 +204,7 @@ def relation(
     ``supplement``, ``volume`` and ``sub-publication``.  The last built-in
     matches anything, so some label always applies.
     """
-    rest = extension(key, identifier, rules)
+    rest = designators.extension(key, identifier, rules)
 
     if rest is None:
         return None
@@ -219,7 +217,10 @@ def relation(
 
 
 def find_candidates(
-    key: str, seriess: set[str], corpus: Corpus, rules: Rules = BUILTIN_RULES
+    key: str,
+    seriess: set[str],
+    corpus: manifest_mod.Corpus,
+    rules: rules_mod.Rules = rules_mod.BUILTIN_RULES,
 ) -> dict:
     """Documents resembling a collapsed key, in tiers, strongest first.
 
@@ -259,7 +260,7 @@ def find_candidates(
             extending[doc.uri] = how
 
     core = re.sub(r"^[a-z]+", "", key)
-    wanted = numbers(key)
+    wanted = designators.numbers(key)
     # An empty series means "no series word", e.g. `61508-3`.  It must never
     # match another empty one, or every digit-initial document in the corpus --
     # including URL-encoded attachment names -- becomes a candidate.
@@ -271,11 +272,13 @@ def find_candidates(
         squashed = re.sub(r"[^a-z0-9]", "", name.casefold())
 
         if core and core in squashed:
-            (matched if numbers(squashed) == wanted else related).append(uri)
+            (
+                matched if designators.numbers(squashed) == wanted else related
+            ).append(uri)
         elif (
-            series(name, rules) in seriess
+            designators.series(name, rules) in seriess
             and wanted
-            and _is_subsequence(wanted, numbers(squashed))
+            and _is_subsequence(wanted, designators.numbers(squashed))
         ):
             related.append(uri)
 
@@ -293,13 +296,19 @@ def find_candidates(
         found["truncated"] = len(related) > MAX_ADVISORY
     elif not matched and not identified and seriess:
         found["same_series"] = sorted(
-            {uri for uri in uris if series(_match_name(uri), rules) in seriess}
+            {
+                uri
+                for uri in uris
+                if designators.series(_match_name(uri), rules) in seriess
+            }
         )[:MAX_ADVISORY]
 
     return found
 
 
-def provisional_answer(found: dict, corpus: Corpus) -> dict | None:
+def provisional_answer(
+    found: dict, corpus: manifest_mod.Corpus
+) -> dict | None:
     """A machine-made answer for one designator group, or None.
 
     Made only from exact ``identifier`` matches whose identifier is trusted --
@@ -335,7 +344,7 @@ def provisional_answer(found: dict, corpus: Corpus) -> dict | None:
 
 
 def cross_references(
-    found_by_key: dict[str, dict], corpus: Corpus
+    found_by_key: dict[str, dict], corpus: manifest_mod.Corpus
 ) -> dict[str, list[str]]:
     """Groups that very likely name the same publication under different keys.
 
@@ -367,7 +376,9 @@ def cross_references(
     return {key: sorted(others) for key, others in linked.items()}
 
 
-def references(cases: list[dict], rules: Rules = BUILTIN_RULES) -> list[str]:
+def references(
+    cases: list[dict], rules: rules_mod.Rules = rules_mod.BUILTIN_RULES
+) -> list[str]:
     """Every usable ``metadata.reference``, one per case that has one."""
     found = []
 
@@ -424,7 +435,7 @@ def _validation_lines(
     return lines
 
 
-def preserved_answers(path: Path) -> tuple[dict, dict]:
+def preserved_answers(path: pathlib.Path) -> tuple[dict, dict]:
     """An existing worksheet's answers, keyed by designator, plus its header.
 
     Refreshing a worksheet regenerates `candidates:` and `apply_keys:` against
@@ -432,7 +443,6 @@ def preserved_answers(path: Path) -> tuple[dict, dict]:
     regenerate over a filled-in worksheet would otherwise destroy the only part
     of it that took human judgement.
     """
-    import yaml
 
     if not path.exists():
         return {}, {}
@@ -464,7 +474,6 @@ def preserved_answers(path: Path) -> tuple[dict, dict]:
 
 def _answer_lines(kept: dict) -> list[str]:
     """Re-emit a preserved answer, indented to sit under its designator."""
-    import yaml
 
     out = []
 
@@ -504,8 +513,6 @@ def substrate_digest(corpus) -> str:
     and that changes what every document *is* without changing how many there
     are.
     """
-    import hashlib
-    import json
 
     if not corpus.substrate:
         return "unknown"
@@ -523,11 +530,11 @@ def render(
     substrate: str,
     generated: str,
     cases: list[dict],
-    corpus: Corpus,
+    corpus: manifest_mod.Corpus,
     previous: dict | None = None,
     validated: dict | None = None,
     provisional: bool = False,
-    rules: Rules = BUILTIN_RULES,
+    rules: rules_mod.Rules = rules_mod.BUILTIN_RULES,
 ) -> str:
     """The worksheet text for one question set.
 
@@ -539,20 +546,33 @@ def render(
     candidates;  the worksheet records their digest.
     """
     cited = references(cases, rules)
-    counts = collections.Counter(designator(text, rules) for text in cited)
-    by_reference = {text: designator(text, rules) for text in set(cited)}
+    counts = collections.Counter(
+        designators.designator(text, rules) for text in cited
+    )
+    by_reference = {
+        text: designators.designator(text, rules) for text in set(cited)
+    }
     ordered = sorted(
         counts,
-        key=lambda name: (collapsed_key(name, rules), name.casefold(), name),
+        key=lambda name: (
+            designators.collapsed_key(name, rules),
+            name.casefold(),
+            name,
+        ),
     )
 
     groups: dict[str, list[str]] = collections.OrderedDict()
     for name in ordered:
-        groups.setdefault(collapsed_key(name, rules), []).append(name)
+        groups.setdefault(designators.collapsed_key(name, rules), []).append(
+            name
+        )
 
     found_by_key = {
         key: find_candidates(
-            key, {series(name, rules) for name in names}, corpus, rules
+            key,
+            {designators.series(name, rules) for name in names},
+            corpus,
+            rules,
         )
         for key, names in groups.items()
     }
@@ -569,7 +589,8 @@ def render(
         f"substrate: {substrate}"
         "   # embedder/chunking digest of the ingestion",
         f"rules: {rules.digest}"
-        f"   # normalization v{NORMALIZATION_VERSION}, {rules.provenance}",
+        f"   # normalization v{rules_mod.NORMALIZATION_VERSION}, "
+        f"{rules.provenance}",
         *_validation_lines(validated, substrate, rules.digest),
         "",
         "designators:",
@@ -577,7 +598,7 @@ def render(
 
     seen = None
     for name in ordered:
-        key = collapsed_key(name, rules)
+        key = designators.collapsed_key(name, rules)
 
         if key != seen:
             out += ["", f"  # {key}"]
@@ -700,12 +721,12 @@ def render(
 
 def refresh(
     *,
-    root: Path,
+    root: pathlib.Path,
     corpora: list,
     ingestion: str | None,
     generated: str,
     provisional: bool = False,
-    rules: Rules = BUILTIN_RULES,
+    rules: rules_mod.Rules = rules_mod.BUILTIN_RULES,
 ) -> list[tuple[str, int, int, int, bool]]:
     """Regenerate the machine-written parts of every existing worksheet.
 
@@ -724,8 +745,6 @@ def refresh(
     worksheet generated under other ``rules`` is regenerated, since its
     recorded digest no longer matches.
     """
-    from exquisite import corpus as corpus_mod
-    from exquisite import manifest as manifest_mod
 
     done = []
 
@@ -775,7 +794,8 @@ def refresh(
             text = rendered(generated=generated)
             path.write_text(text)
             names = {
-                designator(text_, rules) for text_ in references(cases, rules)
+                designators.designator(text_, rules)
+                for text_ in references(cases, rules)
             }
             kept = sum(1 for name in previous if name in names)
             done.append(
@@ -793,21 +813,20 @@ def refresh(
 
 def create(
     *,
-    root: Path,
+    root: pathlib.Path,
     corpus_dir,
     question_set,
     ingestion: str | None,
     generated: str,
     provisional: bool = False,
-    rules: Rules = BUILTIN_RULES,
-) -> Path:
+    rules: rules_mod.Rules = rules_mod.BUILTIN_RULES,
+) -> pathlib.Path:
     """Declare that ``question_set`` is scored against ``corpus_dir``.
 
     Writing the worksheet *is* the declaration:  nothing derives which sets a
     corpus should be scored against, so it is recorded where the work will
     happen rather than in a separate list that could drift from it.
     """
-    from exquisite import manifest as manifest_mod
 
     path = corpus_dir.worksheet_for(question_set)
 

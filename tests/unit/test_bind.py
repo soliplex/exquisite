@@ -6,12 +6,8 @@ import pytest
 from exquisite import bind
 from exquisite import corpus as corpus_mod
 from exquisite import manifest
-from exquisite.manifest import Corpus
-from exquisite.manifest import Document
-from exquisite.rules import BUILTIN_RULES
-from exquisite.rules import Rules
-from exquisite.worksheets import PROVISIONAL
-from exquisite.worksheets import UNFILLED
+from exquisite import rules as rules_mod
+from exquisite import worksheets
 
 LABEL = bind.LABEL_KEY
 
@@ -28,7 +24,7 @@ class TestCheck:
         sheet = worksheet(
             documents=[{"name": "sp800-61.pdf", "sha256": "h"}],
             **{
-                PROVISIONAL: (
+                worksheets.PROVISIONAL: (
                     "identifier match (llm certainty 5): NIST SP 800-61"
                 )
             },
@@ -38,7 +34,7 @@ class TestCheck:
 
         assert problems == [
             "'NIST SP 800-61': provisional answer not yet confirmed -- "
-            f"check it, then delete its `{PROVISIONAL}:` line"
+            f"check it, then delete its `{worksheets.PROVISIONAL}:` line"
         ]
 
     def test_accepts_it_once_the_line_is_deleted(self):
@@ -51,7 +47,7 @@ class TestCheck:
     @pytest.mark.parametrize(
         "entry, problem",
         [
-            ({"documents": UNFILLED}, "documents not filled in"),
+            ({"documents": worksheets.UNFILLED}, "documents not filled in"),
             ({}, "documents not filled in"),
             ({"documents": "a.pdf"}, "documents must be a list, got a string"),
             (
@@ -93,10 +89,12 @@ class TestCheck:
 
 class TestBind:
     def test_labels_resolved_cases_and_tallies_the_rest(self):
-        corpus = Corpus(
+        corpus = manifest.Corpus(
             database="std",
             documents=[
-                Document(uri="file:///new/a.pdf", sha256="h", source_url="u")
+                manifest.Document(
+                    uri="file:///new/a.pdf", sha256="h", source_url="u"
+                )
             ],
         )
         sheet = {
@@ -166,7 +164,10 @@ apply_keys:
 def std(data_root):
     """A corpus holding ISO 9001, and a question set citing it twice."""
     _builders.ingestion(
-        data_root, "std", "std", [Document(uri="file:///iso.pdf", sha256="h")]
+        data_root,
+        "std",
+        "std",
+        [manifest.Document(uri="file:///iso.pdf", sha256="h")],
     )
     _builders.question_set(
         data_root, "set", ["ISO 9001 Sec 4", "ISO 9001 Sec 5"]
@@ -274,16 +275,21 @@ class TestBindFile:
 @pytest.mark.parametrize(
     "rules, tally",
     [
-        (BUILTIN_RULES, {"no_reference": 0, "unknown_reference": ["TBD"]}),
         (
-            Rules.from_mapping({"references": {"placeholders": ["TBD"]}}),
+            rules_mod.BUILTIN_RULES,
+            {"no_reference": 0, "unknown_reference": ["TBD"]},
+        ),
+        (
+            rules_mod.Rules.from_mapping(
+                {"references": {"placeholders": ["TBD"]}}
+            ),
             {"no_reference": 1, "unknown_reference": []},
         ),
     ],
 )
 def test_bind_treats_caller_placeholders_as_no_reference(rules, tally):
     sheet = worksheet(documents=[{"name": "a.pdf", "sha256": "h"}])
-    corpus = Corpus(database="std")
+    corpus = manifest.Corpus(database="std")
 
     _, found = bind.bind(
         sheet, [{"metadata": {"reference": "TBD"}}], corpus=corpus, rules=rules

@@ -3,6 +3,7 @@
 import pytest
 
 from exquisite import manifest
+from exquisite import rules as rules_mod
 
 
 def write_pair(tmp_path, rows: str, documents: int):
@@ -343,14 +344,15 @@ class TestResolve:
     ],
 )
 def test_by_identifier_collapses_under_the_rules(rules, expected):
-    from exquisite.rules import BUILTIN_RULES
-    from exquisite.rules import Rules
-
     corpus = manifest.Corpus(
         database="std",
         documents=[manifest.Document(uri="u", document_identifier="STD 9001")],
     )
-    given = BUILTIN_RULES if rules is None else Rules.from_mapping(rules)
+    given = (
+        rules_mod.BUILTIN_RULES
+        if rules is None
+        else rules_mod.Rules.from_mapping(rules)
+    )
 
     found = corpus.by_identifier(given)
 

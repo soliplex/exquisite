@@ -7,10 +7,13 @@ import sys
 import _builders
 import pytest
 
-import exquisite
-from exquisite.manifest import Document
+from exquisite import cli
+from exquisite import corpus
+from exquisite import manifest
+from exquisite import rules
+from exquisite import worksheets
 
-ISO = Document(
+ISO = manifest.Document(
     uri="file:///iso.pdf",
     sha256="h",
     source_url="https://x/iso",
@@ -50,13 +53,13 @@ def run(monkeypatch, root, command, *args):
     monkeypatch.setattr(sys, "argv", [*argv, *args])
 
     with pytest.raises(SystemExit) as exited:
-        exquisite.main()
+        cli.main()
 
     return exited.value.code
 
 
 def test_data_root_resolves_a_directory_holding_both(data_root):
-    result = exquisite._data_root(str(data_root))
+    result = cli._data_root(str(data_root))
 
     assert result == data_root.resolve()
 
@@ -64,8 +67,8 @@ def test_data_root_resolves_a_directory_holding_both(data_root):
 def test_data_root_names_what_is_missing(tmp_path):
     (tmp_path / "corpus").mkdir()
 
-    with pytest.raises(exquisite.NotADataRoot) as raised:
-        exquisite._data_root(str(tmp_path))
+    with pytest.raises(cli.NotADataRoot) as raised:
+        cli._data_root(str(tmp_path))
 
     assert raised.value.missing == ["questions"]
     assert isinstance(raised.value, argparse.ArgumentTypeError)
@@ -106,8 +109,6 @@ def test_add_worksheet_refuses_an_existing_pairing(monkeypatch, capsys, std):
 @pytest.fixture
 def paired(std):
     """`std`, with a worksheet holding a provisional answer for ISO 9001."""
-    from exquisite import corpus
-    from exquisite import worksheets
 
     worksheets.create(
         root=std,
@@ -152,8 +153,6 @@ def test_refresh_reports_each_worksheet(
 @pytest.fixture
 def uri_cited(data_root):
     """A worksheet whose question set cites documents by URI."""
-    from exquisite import corpus
-    from exquisite import worksheets
 
     _builders.ingestion(data_root, "std", "std", [ISO])
     _builders.question_set(
@@ -250,8 +249,6 @@ def created_rules_line(root):
 
 
 def test_add_worksheet_uses_the_roots_rules_file(monkeypatch, std):
-    from exquisite import rules
-
     (std / rules.FILENAME).write_text(RULES)
     args = ["--corpus", "std", "--questions", "set"]
 
@@ -263,8 +260,6 @@ def test_add_worksheet_uses_the_roots_rules_file(monkeypatch, std):
 
 
 def test_an_explicit_rules_file_wins(monkeypatch, std, tmp_path):
-    from exquisite import rules
-
     (std / rules.FILENAME).write_text("relations: []\n")
     explicit = tmp_path / "explicit.yaml"
     explicit.write_text(RULES)

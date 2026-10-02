@@ -51,12 +51,15 @@ identifiers have an unknown source, and so are never `trusted_identifier`.
 
 import collections
 import csv
-from dataclasses import dataclass
-from dataclasses import field
-from pathlib import Path
+import dataclasses
+import os
+import pathlib
+import urllib.parse
 
-from exquisite.rules import BUILTIN_RULES
-from exquisite.rules import Rules
+import yaml
+
+from exquisite import designators
+from exquisite import rules as rules_mod
 
 COLUMNS = (
     "uri",
@@ -82,7 +85,7 @@ TRUSTED_CERTAINTY = 4
 QUOTING = csv.QUOTE_ALL
 
 
-def write(path: Path, documents) -> None:
+def write(path: pathlib.Path, documents) -> None:
     """Write a manifest CSV, quoting every field."""
     with path.open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=COLUMNS, quoting=QUOTING)
@@ -142,7 +145,7 @@ def from_metadata(uri: str, metadata: dict) -> "Document":
     )
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class Document:
     uri: str
     sha256: str = ""
@@ -202,7 +205,6 @@ class Document:
         ingestion's file layout, so it survives re-ingestion as the durable
         columns do.
         """
-        import urllib.parse
 
         if "#attachment=" not in self.uri:
             return ""
@@ -212,8 +214,6 @@ class Document:
     @property
     def name(self) -> str:
         """The document's basename, decoded, for a reader of a worksheet."""
-        import os
-        import urllib.parse
 
         return self.attachment or urllib.parse.unquote(
             os.path.basename(self.uri)
@@ -264,12 +264,12 @@ class RowCountMismatch(ManifestError):
         )
 
 
-@dataclass
+@dataclasses.dataclass
 class Corpus:
     database: str
-    documents: list[Document] = field(default_factory=list)
+    documents: list[Document] = dataclasses.field(default_factory=list)
     #: The sidecar, verbatim:  database path, extraction time, substrate.
-    about: dict = field(default_factory=dict)
+    about: dict = dataclasses.field(default_factory=dict)
 
     @property
     def substrate(self) -> dict:
@@ -312,24 +312,22 @@ class Corpus:
         return dict(found)
 
     def by_identifier(
-        self, rules: Rules = BUILTIN_RULES
+        self, rules: rules_mod.Rules = rules_mod.BUILTIN_RULES
     ) -> dict[str, list[Document]]:
         """Keyed by each identifier's collapsed key under ``rules``."""
-        from exquisite.designators import collapsed_key
 
         found: dict[str, list[Document]] = collections.defaultdict(list)
 
         for doc in self.documents:
             if doc.document_identifier:
-                key = collapsed_key(doc.document_identifier, rules)
+                key = designators.collapsed_key(doc.document_identifier, rules)
                 found[key].append(doc)
 
         return dict(found)
 
 
-def load(path: Path) -> Corpus:
+def load(path: pathlib.Path) -> Corpus:
     """Read a manifest CSV and its YAML sidecar as one `Corpus`."""
-    import yaml
 
     sidecar = path.with_suffix(".yaml")
 

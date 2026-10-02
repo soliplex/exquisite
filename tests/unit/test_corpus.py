@@ -4,7 +4,7 @@ import _builders
 import pytest
 
 from exquisite import corpus
-from exquisite.manifest import Document
+from exquisite import manifest
 
 
 @pytest.mark.parametrize(
@@ -98,7 +98,9 @@ def test_ingestion_picks_the_only_one_or_the_named_one(
     data_root, stems, name, expected
 ):
     for stem in stems:
-        _builders.ingestion(data_root, "std", stem, [Document(uri="u")])
+        _builders.ingestion(
+            data_root, "std", stem, [manifest.Document(uri="u")]
+        )
     corpus_dir = corpus.find(data_root, "std")
 
     found = corpus_dir.ingestion(name)
