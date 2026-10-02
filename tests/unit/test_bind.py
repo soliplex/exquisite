@@ -8,6 +8,8 @@ from exquisite import corpus as corpus_mod
 from exquisite import manifest
 from exquisite.manifest import Corpus
 from exquisite.manifest import Document
+from exquisite.rules import BUILTIN_RULES
+from exquisite.rules import Rules
 from exquisite.worksheets import PROVISIONAL
 from exquisite.worksheets import UNFILLED
 
@@ -267,3 +269,24 @@ class TestBindFile:
             "  'ISO 9001': 'iso.pdf' has neither sha256 nor source_url, so it "
             "cannot be bound"
         )
+
+
+@pytest.mark.parametrize(
+    "rules, tally",
+    [
+        (BUILTIN_RULES, {"no_reference": 0, "unknown_reference": ["TBD"]}),
+        (
+            Rules.from_mapping({"references": {"placeholders": ["TBD"]}}),
+            {"no_reference": 1, "unknown_reference": []},
+        ),
+    ],
+)
+def test_bind_treats_caller_placeholders_as_no_reference(rules, tally):
+    sheet = worksheet(documents=[{"name": "a.pdf", "sha256": "h"}])
+    corpus = Corpus(database="std")
+
+    _, found = bind.bind(
+        sheet, [{"metadata": {"reference": "TBD"}}], corpus=corpus, rules=rules
+    )
+
+    assert {key: found[key] for key in tally} == tally

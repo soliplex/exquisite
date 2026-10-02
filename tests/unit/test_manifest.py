@@ -326,3 +326,32 @@ class TestResolve:
 
         assert [doc.uri for doc in documents] == uris
         assert found_how == how
+
+
+@pytest.mark.parametrize(
+    "rules, expected",
+    [
+        (None, ["std9001"]),
+        (
+            {
+                "designators": {
+                    "rewrite": [{"pattern": "^std ", "replace": ""}]
+                }
+            },
+            ["9001"],
+        ),
+    ],
+)
+def test_by_identifier_collapses_under_the_rules(rules, expected):
+    from exquisite.rules import BUILTIN_RULES
+    from exquisite.rules import Rules
+
+    corpus = manifest.Corpus(
+        database="std",
+        documents=[manifest.Document(uri="u", document_identifier="STD 9001")],
+    )
+    given = BUILTIN_RULES if rules is None else Rules.from_mapping(rules)
+
+    found = corpus.by_identifier(given)
+
+    assert list(found) == expected

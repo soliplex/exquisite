@@ -56,6 +56,7 @@ def _refresh_worksheets(args: argparse.Namespace) -> int:
         ingestion=args.ingestion,
         generated=args.date,
         provisional=args.provisional,
+        rules=args.rules,
     )
 
     changed = [item for item in done if item[4]]
@@ -95,6 +96,7 @@ def _add_worksheet(args: argparse.Namespace) -> int:
             ingestion=args.ingestion,
             generated=args.date,
             provisional=args.provisional,
+            rules=args.rules,
         )
     except (FileExistsError, ValueError) as exc:
         print(exc, file=sys.stderr)
@@ -121,6 +123,7 @@ def _resolve_references(args: argparse.Namespace) -> int:
                 root=args.root,
                 corpus=corpus,
                 generated=args.date,
+                rules=args.rules,
             )
 
             if tally.get("skipped"):
@@ -162,6 +165,7 @@ def _bind(args: argparse.Namespace) -> int:
             question_set=question_set,
             root=args.root,
             corpus=corpus,
+            rules=args.rules,
         )
     except bind_mod.WorksheetError as exc:
         print(exc, file=sys.stderr)
@@ -197,6 +201,10 @@ def _bind(args: argparse.Namespace) -> int:
 
 
 def main() -> None:
+    import yaml
+
+    from exquisite import rules as rules_mod
+
     parser = argparse.ArgumentParser(prog="exquisite", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -218,6 +226,15 @@ def main() -> None:
             help=(
                 "data repository holding questions/ and corpus/ "
                 "(default: $EXQUISITE_ROOT, else the working directory)"
+            ),
+        )
+        parser_.add_argument(
+            "--rules",
+            type=Path,
+            default=None,
+            help=(
+                "normalization rules to use "
+                "(default: exquisite.yaml at the root, if present)"
             ),
         )
         parser_.add_argument(
@@ -286,5 +303,10 @@ def main() -> None:
     bind_cmd.set_defaults(func=_bind)
 
     args = parser.parse_args()
+
+    try:
+        args.rules = rules_mod.find(args.root, args.rules)
+    except (rules_mod.RulesError, OSError, yaml.YAMLError) as exc:
+        parser.error(f"cannot use the rules: {exc}")
 
     sys.exit(args.func(args))

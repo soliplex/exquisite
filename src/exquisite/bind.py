@@ -31,6 +31,8 @@ from pathlib import Path
 
 from exquisite.manifest import Corpus
 from exquisite.manifest import resolve
+from exquisite.rules import BUILTIN_RULES
+from exquisite.rules import Rules
 from exquisite.worksheets import PROVISIONAL
 from exquisite.worksheets import UNFILLED
 
@@ -122,7 +124,11 @@ def check(worksheet: dict) -> list[str]:
 
 
 def bind(
-    worksheet: dict, cases: list[dict], *, corpus: Corpus
+    worksheet: dict,
+    cases: list[dict],
+    *,
+    corpus: Corpus,
+    rules: Rules = BUILTIN_RULES,
 ) -> tuple[list[dict], dict]:
     """Return ``(cases, tally)`` with ``relevant_uris`` written where resolved.
 
@@ -134,6 +140,9 @@ def bind(
 
     A document whose hash misses but whose source_url hits is reported as
     ``changed`` -- the file at that location is not the one the SME approved.
+
+    A case whose reference is one of the ``rules``' placeholders counts as
+    having none, matching the worksheet, which gave it no apply key.
     """
     keys = worksheet["apply_keys"]
     tally = {
@@ -173,7 +182,7 @@ def bind(
         metadata = case.setdefault("metadata", {})
         reference = (metadata.get("reference") or "").strip()
 
-        if not reference or reference == "[To Be Filled Out]":
+        if reference in rules.not_references:
             tally["no_reference"] += 1
             continue
 
@@ -236,6 +245,7 @@ def bind_file(
     question_set,
     root: Path,
     corpus: Corpus,
+    rules: Rules = BUILTIN_RULES,
 ) -> tuple[dict, dict]:
     """Bind one question set to one ingestion:  ``(document, tally)``.
 
@@ -260,10 +270,12 @@ def bind_file(
     document = json.loads(question_set.path.read_text())
 
     if parent is None:
-        _, tally = bind(worksheet, document["cases"], corpus=corpus)
+        _, tally = bind(
+            worksheet, document["cases"], corpus=corpus, rules=rules
+        )
     else:
         source = json.loads(parent.path.read_text())
-        _, tally = bind(worksheet, source["cases"], corpus=corpus)
+        _, tally = bind(worksheet, source["cases"], corpus=corpus, rules=rules)
         tally["carried"] = _carry_labels(source["cases"], document["cases"])
         tally["labelled"] = tally["carried"]
 
