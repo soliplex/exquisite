@@ -7,12 +7,7 @@
 uv tool install exquisite
 ```
 
-or with `pip install exquisite`. Until the first release is on PyPI, install
-from the repository:
-
-```bash
-uv tool install git+https://github.com/soliplex/exquisite
-```
+or with `pip install exquisite`.
 
 `exquisite --help` lists the commands; `exquisite <command> --help`
 describes each one.
