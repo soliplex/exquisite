@@ -33,6 +33,7 @@ classifiers = [
     "Topic :: Text Processing :: Indexing",
 ]
 dependencies = [
+    "haiku-rag-slim >= 0.89, < 0.93",
     "pyyaml",
 ]
 
@@ -133,6 +134,7 @@ known-third-party = ["alembic"]
 banned-from = [
     # the standard library, as used here
     "argparse",
+    "asyncio",
     "collections",
     "csv",
     "dataclasses",
@@ -146,6 +148,12 @@ banned-from = [
     "sys",
     "urllib.parse",
     # third-party
+    "haiku.rag.client",
+    "haiku.rag.config",
+    "haiku.rag.store.engine",
+    "haiku.rag.store.exceptions",
+    "haiku.rag.store.info",
+    "haiku.rag.store.models.chunk",
     "pytest",
     "yaml",
     # this package
@@ -155,7 +163,9 @@ banned-from = [
     "exquisite.designators",
     "exquisite.manifest",
     "exquisite.resolve",
+    "exquisite.retrieval",
     "exquisite.rules",
+    "exquisite.search",
     "exquisite.worksheets",
     # test helpers
     "_builders",

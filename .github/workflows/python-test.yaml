@@ -33,6 +33,16 @@ jobs:
         # worksheets themselves.  Add `windows-latest` once that is fixed.
         os: [ubuntu-latest]
         python-version: ["3.13", "3.14"]
+        # Empty:  whatever `uv.lock` resolves, the newest haiku-rag the
+        # dependency allows.  The job added below tests the oldest,
+        # since `exquisite.search` reaches below haiku-rag's client.  (A key
+        # of the matrix, so that the job is added rather than merged into
+        # the matching 3.13 one.)
+        haiku-rag: [""]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.13"
+            haiku-rag: "0.89.0"
     steps:
       - uses: actions/checkout@v6
 
@@ -51,7 +61,8 @@ jobs:
       - name: Run unit tests with coverage
         run: |
           set -o pipefail
-          uv run pytest 2>&1 | tee unit-tests.log
+          uv run ${{ matrix.haiku-rag && format('--with haiku-rag-slim=={0}', matrix.haiku-rag) || '' }} \
+            pytest 2>&1 | tee unit-tests.log
 
       # Slack notification lives in 'ci-failure-notify.yaml', which only
       # links to this run, so record what failed here.
@@ -59,7 +70,7 @@ jobs:
         if: failure()
         run: |
           {
-            echo "## ${{ matrix.os }}, Python ${{ matrix.python-version }} failed"
+            echo "## ${{ matrix.os }}, Python ${{ matrix.python-version }} ${{ matrix.haiku-rag && format('(haiku-rag-slim {0})', matrix.haiku-rag) || '' }} failed"
             echo
             for log in unit-tests.log; do
               [ -f "$log" ] || continue

@@ -8,7 +8,8 @@ them, so that a retrieval-augmented generation (RAG) system can be scored on
 corpus in a *manifest*, generates *worksheets* in which a person who knows
 the corpus records which documents each citation means, and *binds* a
 question set to one ingestion by writing the documents' current URIs into
-each question.
+each question. It can then check that a haiku-rag database's searches return
+those documents.
 
 **Documentation:** <https://soliplex.github.io/exquisite/>
 
