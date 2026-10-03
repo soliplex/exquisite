@@ -8,6 +8,7 @@ on:
       - 'pyproject.toml'
       - 'src/exquisite/**'
       - 'tests/**'
+      - 'data/**'
       - '.github/workflows/python-test.yaml'
       - 'uv.lock'
   pull_request:
@@ -17,6 +18,7 @@ on:
       - 'pyproject.toml'
       - 'src/exquisite/**'
       - 'tests/**'
+      - 'data/**'
       - '.github/workflows/python-test.yaml'
       - 'uv.lock'
   workflow_dispatch:

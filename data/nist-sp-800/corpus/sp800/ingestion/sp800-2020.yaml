@@ -1,0 +1,17 @@
+# What this ingestion of the corpus is, and where it came from.
+# Generated alongside sp800-2020.csv; the two are a pair.
+#
+# SYNTHETIC:  no RAG database has ingested this corpus yet.  The URIs are
+# shaped like an ingester's; the hashes and source URLs are real, taken from
+# the official downloads on 2026-10-02.
+#
+# This ingestion holds the editions current on its
+# 'as_of' date.
+database: sp800-2020
+extracted_at: 2026-10-02T00:00:00+00:00
+
+# The snapshot's date:  every document here was current on it.
+as_of: 2020-06-30
+
+# Row count in the CSV must match; a mismatch means a truncated extraction.
+documents: 8
