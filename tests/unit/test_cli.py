@@ -10,7 +10,9 @@ import pytest
 from exquisite import cli
 from exquisite import corpus
 from exquisite import manifest
+from exquisite import retrieval
 from exquisite import rules
+from exquisite import search
 from exquisite import worksheets
 
 ISO = manifest.Document(
@@ -294,3 +296,232 @@ def test_unusable_rules_are_a_usage_error(
     assert status == 2
     assert "cannot use the rules:" in captured.err
     assert message in captured.err
+
+
+SETTINGS = {"embedder": "e", "reranker": None, "top_k": 30}
+
+
+def run_check(monkeypatch, root, *args):
+    """Run ``exquisite check-retrieval`` on the `std` question set."""
+    argv = ["exquisite", "check-retrieval", "--root", str(root)]
+    argv += ["--corpus", "std", "--questions", "set", "--db", "db.lancedb"]
+    monkeypatch.setattr(sys, "argv", [*argv, *args])
+
+    with pytest.raises(SystemExit) as exited:
+        cli.main()
+
+    return exited.value.code
+
+
+class FakeSearch:
+    """Stands in for the database:  each search returns ``hits``."""
+
+    def __init__(self, hits):
+        self.hits = hits
+        self.searched = []
+
+    def describe(self, location, config, top_k):
+        settings = {**SETTINGS, "top_k": top_k}
+        database = {"location": location, "documents": 1, "chunks": 3}
+
+        return settings, database
+
+    def search(self, location, config, questions, top_k):
+        self.searched.append((location, [q.key for q in questions], top_k))
+
+        return [list(self.hits) for _ in questions]
+
+
+@pytest.fixture
+def bound(std):
+    """`std`, with its worksheet answered:  one question binds, one can't."""
+    _builders.worksheet(std, "std", "set", ANSWERED.format(sha256="h"))
+
+    return std
+
+
+def found(monkeypatch, *hits):
+    """Replace the database with one whose searches return ``hits``."""
+    fake = FakeSearch(hits)
+    monkeypatch.setattr(search, "describe", fake.describe)
+    monkeypatch.setattr(search, "search", fake.search)
+
+    return fake
+
+
+ISO_MOVED = retrieval.Hit("file:///moved/iso.pdf", {"sha256": "h"})
+
+
+def test_check_retrieval_refuses_an_unready_worksheet(
+    monkeypatch, capsys, paired
+):
+    status = run_check(monkeypatch, paired)
+
+    assert status == 1
+    assert capsys.readouterr().err.startswith(
+        "set.yaml is not ready to bind:\n"
+    )
+
+
+def test_check_retrieval_passes_and_saves_the_run(monkeypatch, capsys, bound):
+    fake = found(monkeypatch, ISO_MOVED)
+    out = bound / "results.json"
+
+    status = run_check(monkeypatch, bound, "--out", str(out), "--top-k", "5")
+
+    captured = capsys.readouterr()
+    saved = retrieval.load(out)
+    assert status == 0
+    assert captured.out == (
+        f"results saved to {out}\n"
+        "1 question(s) ineligible:  no relevant documents\n"
+        "1/1 questions passed;  mean retrieval_mrr 1.000\n"
+    )
+    # Binding's problems are reported, and leave their question ineligible.
+    assert captured.err == "'IEC 61508': iec.pdf -- not in this ingestion\n"
+    assert fake.searched == [("db.lancedb", ["uuid-0"], 5)]
+    assert saved.question_set == "questions/set.json"
+    assert saved.settings == {**SETTINGS, "top_k": 5}
+    retrieved = [case.retrieved for case in saved.cases]
+    assert retrieved == [["file:///iso.pdf"], []]
+    assert saved.started
+    assert saved.finished
+
+
+def test_check_retrieval_fails_on_a_miss(monkeypatch, capsys, bound):
+    found(monkeypatch, retrieval.Hit("file:///other.pdf"))
+    out = bound / "results.json"
+
+    status = run_check(monkeypatch, bound, "--out", str(out))
+
+    assert status == 1
+    assert "MISS uuid-0: question 0\n" in capsys.readouterr().out
+
+
+def test_check_retrieval_names_the_databases_its_path_displaces(
+    monkeypatch, capsys, bound
+):
+    found(monkeypatch, ISO_MOVED)
+    config = bound / "haiku.rag.yaml"
+    config.write_text("lancedb:\n  databases:\n    prod: /srv/prod\n")
+    args = ["--config", str(config), "--out", str(bound / "results.json")]
+
+    status = run_check(monkeypatch, bound, *args)
+
+    assert status == 0
+    assert capsys.readouterr().out.startswith(
+        "searching db.lancedb instead of the configuration's databases "
+        "(prod)\n"
+    )
+
+
+def reference_run(
+    bound,
+    *,
+    top_k=30,
+    retrieved=("file:///iso.pdf",),
+    database=(("documents", 2), ("chunks", 4)),
+):
+    """Save a prior run against `bound`'s question set;  its path."""
+    path = bound / "reference.json"
+    retrieval.save(
+        retrieval.Run(
+            question_set="questions/set.json",
+            corpus="std",
+            ingestion="std",
+            settings={**SETTINGS, "top_k": top_k},
+            database=dict(database),
+            substrate={"exquisite": "0.0"},
+            cases=[
+                retrieval.CaseResult(
+                    key="uuid-0",
+                    question="question 0",
+                    relevant=["file:///iso.pdf"],
+                    retrieved=list(retrieved),
+                    score=1.0 if retrieved else 0.0,
+                )
+            ],
+        ),
+        path,
+    )
+
+    return path
+
+
+def test_check_retrieval_fails_on_a_loss_against_a_reference(
+    monkeypatch, capsys, bound
+):
+    found(monkeypatch, retrieval.Hit("file:///other.pdf"))
+    reference = reference_run(bound)
+    args = ["--compare", str(reference), "--out", str(bound / "now.json")]
+
+    status = run_check(monkeypatch, bound, *args)
+
+    captured = capsys.readouterr()
+    assert status == 1
+    assert captured.out.startswith("2 -> 1 documents, 4 -> 3 chunks\n")
+    assert "LOSS uuid-0: question 0\n" in captured.out
+    assert f"{reference}: `exquisite` differs (0.0 vs. " in captured.err
+
+
+def test_check_retrieval_passes_against_a_reference(
+    monkeypatch, capsys, bound
+):
+    found(monkeypatch, ISO_MOVED)
+    reference = reference_run(bound, database=())
+    out = bound / "now.json"
+    args = ["--compare", str(reference), "--out", str(out)]
+
+    status = run_check(monkeypatch, bound, *args)
+
+    assert status == 0
+    assert capsys.readouterr().out == (
+        f"results saved to {out}\n"
+        "1 question(s) ineligible:  no relevant documents\n"
+        "1/1 questions passed;  mean retrieval_mrr 1.000\n"
+    )
+
+
+def incomparable(bound):
+    return reference_run(bound, top_k=10)
+
+
+def not_results(bound):
+    path = bound / "reference.json"
+    path.write_text('{"cases": []}')
+
+    return path
+
+
+@pytest.mark.parametrize(
+    "setup, message",
+    [
+        (incomparable, "the top K differs (10 vs. 30)"),
+        (not_results, "is not a check-retrieval results file"),
+    ],
+)
+def test_check_retrieval_refuses_a_reference_before_searching(
+    monkeypatch, capsys, bound, setup, message
+):
+    fake = found(monkeypatch, ISO_MOVED)
+    reference = setup(bound)
+    args = ["--compare", str(reference), "--out", str(bound / "now.json")]
+
+    status = run_check(monkeypatch, bound, *args)
+
+    assert status == 1
+    assert message in capsys.readouterr().err
+    assert fake.searched == []
+    assert not (bound / "now.json").exists()
+
+
+def test_check_retrieval_never_opens_a_missing_database(
+    monkeypatch, capsys, bound
+):
+    monkeypatch.chdir(bound)
+
+    status = run_check(monkeypatch, bound, "--out", str(bound / "now.json"))
+
+    assert status == 1
+    assert "no database at db.lancedb" in capsys.readouterr().err
+    assert not (bound / "db.lancedb").exists()

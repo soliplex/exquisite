@@ -16,6 +16,7 @@ nav = [
   { "Ingestion Manifests" = "manifests.md" },
   { "Worksheets" = "worksheets.md" },
   { "Binding" = "binding.md" },
+  { "Checking Retrieval" = "check-retrieval.md" },
   { "Normalization Rules" = "rules.md" },
   { "Development" = "development.md" },
 ]
