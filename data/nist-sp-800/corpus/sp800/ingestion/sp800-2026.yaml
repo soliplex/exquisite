@@ -3,10 +3,15 @@
 #
 # SYNTHETIC:  no RAG database has ingested this corpus yet.  The URIs are
 # shaped like an ingester's; the hashes and source URLs are real, taken from
-# the official downloads on 2026-10-02.  This ingestion holds the editions current in 2026, plus the
-# SP 800-57 Part 1 Rev. 6 initial public draft.
+# the official downloads on 2026-10-02.
+#
+# This ingestion holds the editions current on its
+# 'as_of' date, including the SP 800-57 Part 1 Rev. 6 initial public draft.
 database: sp800-2026
 extracted_at: 2026-10-02T00:00:00+00:00
+
+# The snapshot's date:  every document here was current on it.
+as_of: 2026-10-02
 
 # Row count in the CSV must match; a mismatch means a truncated extraction.
 documents: 13

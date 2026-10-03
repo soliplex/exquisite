@@ -1,97 +1,94 @@
 # NIST SP 800 example corpus
 
-A small data repository of NIST Special Publications, built to exercise the
-ways a real corpus misleads: one publication under many spellings,
-citations of superseded editions or of no edition at all, companions,
-supplements, volumes, parts, and drafts. It is not meant to cover the
-SP 800 series. See [#3](https://github.com/soliplex/exquisite/issues/3).
+A small data repository holding two dated snapshots of a subset of the NIST
+Special Publications. Between them, editions are superseded, companions and
+drafts appear, and publications are cited in many spellings. It is not meant
+to cover the SP 800 series. See
+[#3](https://github.com/soliplex/exquisite/issues/3).
 
-Run `exquisite` against it with `--root`:
+Run `exquisite` against it with `--root`, naming the snapshot:
 
 ```bash
-uv run exquisite refresh-worksheets --root data/nist-sp-800 --ingestion sp800-2026
-uv run exquisite bind --root data/nist-sp-800 --corpus sp800 \
-    --questions sp800-pitfalls --ingestion sp800-2026
+uv run exquisite refresh-worksheets --root data/nist-sp-800 --ingestion sp800-2020
 ```
 
-`tests/unit/test_data_nist_sp_800.py` pins what `exquisite` makes of it.
+`tests/unit/test_data_nist_sp_800.py` pins the snapshots, and what the rules
+make of NIST citations.
 
 ## Contents
 
 ```text
 exquisite.yaml                          normalization rules for NIST spellings
-questions/sp800-pitfalls.json           25 questions, each citing a pitfall
 corpus/sp800/
-  ingestion/sp800-2020.{csv,yaml}       the editions current in 2020
-  ingestion/sp800-2026.{csv,yaml}       the editions current in 2026
-  worksheet/sp800-pitfalls.yaml         which documents each citation means
+  ingestion/sp800-2020.{csv,yaml}       the editions current on 2020-06-30
+  ingestion/sp800-2026.{csv,yaml}       the editions current on 2026-10-02
 ```
+
+A question set written against the 2020 snapshot, and its worksheet, are
+being drafted.
 
 ## The documents
 
-Eighteen publications, as downloaded from `nvlpubs.nist.gov` on 2026-10-02.
+Seventeen publications, as downloaded from `nvlpubs.nist.gov` on 2026-10-02.
 The documents themselves are not committed: each manifest records the
 official URL as `source_url`, and the `sha256` of the downloaded file.
 
-| Publication | `sp800-2020` | `sp800-2026` | Status |
-| --- | :-: | :-: | --- |
-| SP 800-30 Rev. 1 | ✓ | ✓ | final |
-| SP 800-53 Rev. 4 | ✓ | | withdrawn; superseded by Rev. 5 |
-| SP 800-53 Rev. 5 | | ✓ | final |
-| SP 800-53A Rev. 5 | | ✓ | final; a companion of SP 800-53 |
-| SP 800-53B | ✓ | ✓ | final; a companion of SP 800-53 |
-| SP 800-57 Part 1 Rev. 5 | ✓ | ✓ | final |
-| SP 800-57 Part 1 Rev. 6 (initial public draft) | | ✓ | draft |
-| SP 800-60 Vol. 1 Rev. 1 | ✓ | ✓ | final |
-| SP 800-60 Vol. 2 Rev. 1 | ✓ | ✓ | final |
-| SP 800-61 Rev. 2 | ✓ | | withdrawn; superseded by Rev. 3 |
-| SP 800-61 Rev. 3 | | ✓ | final |
-| SP 800-63-4 | | ✓ | final |
-| SP 800-63B | ✓ | | withdrawn; superseded by SP 800-63B-4 |
-| SP 800-63B-4 | | ✓ | final |
-| SP 800-63Bsup1 | ✓ | | withdrawn 2025-07-31 |
-| SP 800-171 Rev. 2 | ✓ | | withdrawn; superseded by Rev. 3 |
-| SP 800-171 Rev. 3 | | ✓ | final |
-| SP 800-171A Rev. 3 | | ✓ | final; a companion of SP 800-171 |
+Each snapshot holds the documents current on its `as_of` date, recorded in
+its sidecar.
+
+| Publication | Published | `sp800-2020` | `sp800-2026` | Status |
+| --- | --- | :-: | :-: | --- |
+| SP 800-30 Rev. 1 | 2012-09 | ✓ | ✓ | final |
+| SP 800-53 Rev. 4 | 2013-04 | ✓ | | withdrawn 2021-09; superseded by Rev. 5 |
+| SP 800-53 Rev. 5 | 2020-09 | | ✓ | final |
+| SP 800-53A Rev. 5 | 2022-01 | | ✓ | final; a companion of SP 800-53 |
+| SP 800-53B | 2020-12 | | ✓ | final; a companion of SP 800-53 |
+| SP 800-57 Part 1 Rev. 5 | 2020-05 | ✓ | ✓ | final |
+| SP 800-57 Part 1 Rev. 6 (initial public draft) | 2025-12 | | ✓ | draft |
+| SP 800-60 Vol. 1 Rev. 1 | 2008-08 | ✓ | ✓ | final |
+| SP 800-60 Vol. 2 Rev. 1 | 2008-08 | ✓ | ✓ | final |
+| SP 800-61 Rev. 2 | 2012-08 | ✓ | | withdrawn; superseded by Rev. 3 |
+| SP 800-61 Rev. 3 | 2025-04 | | ✓ | final |
+| SP 800-63-4 | 2025-07 | | ✓ | final |
+| SP 800-63B | 2017-06 | ✓ | | withdrawn 2025-08; superseded by SP 800-63B-4 |
+| SP 800-63B-4 | 2025-07 | | ✓ | final |
+| SP 800-171 Rev. 2 | 2020-02 | ✓ | | withdrawn 2024-05; superseded by Rev. 3 |
+| SP 800-171 Rev. 3 | 2024-05 | | ✓ | final |
+| SP 800-171A Rev. 3 | 2024-05 | | ✓ | final; a companion of SP 800-171 |
+
+The publication dates come from NIST's CSRC pages; the manifests do not
+record them yet ([#25](https://github.com/soliplex/exquisite/issues/25)).
 
 **The ingestions are synthetic.** No RAG database has ingested this corpus
 yet, so the URIs (`file:///data/nist-sp-800/…`) are shaped like an
 ingester's, and the sidecars record no substrate. The hashes and source URLs
 are real. Every identifier is recorded as `override`, mapped by hand.
 
-## The pitfalls
+## What the rules handle
 
-Each question's citation is spelled to provoke one of these. Every answer
-was checked against the cited section of the document.
+`exquisite.yaml` folds the ways NIST publications are cited. Each row is
+tested against the rules, citation by citation.
 
-| Pitfall | Citations |
+| Convention | Citations that collapse together |
 | --- | --- |
-| One publication, several spellings | `NIST SP 800-30 Rev. 1`, `NIST Special Publication 800-30 Revision 1`, `SP 800-30r1` |
-| A superseded edition | `NIST SP 800-61 Rev. 2`, `NIST Special Publication 800-53 Revision 4`, `NIST SP 800-171 Rev. 2`, `NIST SP 800-63B` |
-| No edition, true of only one | `NIST SP 800-61, Section 2.1`: six CSF 2.0 Functions, true only of Rev. 3 |
-| No edition, true of every one | `NIST SP 800-53 Control AC-2`: Account Management in both Rev. 4 and Rev. 5 |
-| A companion, not the publication | `NIST SP 800-53A Rev. 5`, `NIST SP 800-53B`, `NIST SP 800-171A Rev. 3` |
-| Editions whose answers differ | SP 800-171: fourteen families in Rev. 2, 17 in Rev. 3. SP 800-63B: 8-character secrets in the 2017 edition, 15 for single-factor passwords in SP 800-63B-4 |
-| A revision as a suffix | `NIST SP 800-63B-4` and `NIST Special Publication 800-63B Revision 4` |
-| A sibling, not a revision | `NIST SP 800-63-4` beside SP 800-63B-4 |
-| A supplement, two spellings | `NIST SP 800-63Bsup1` and `NIST SP 800-63B Supplement 1` |
-| Roman-numeral volumes | `NIST SP 800-60 Volume I Revision 1`, `NIST SP 800-60 Vol. II Rev. 1` |
-| A draft cited without its part | `NIST SP 800-57 Rev. 6 (Initial Public Draft)`, as CSRC's own listing spells it, for the draft of Part 1 |
+| The `NIST` / `Special Publication` prefix | `NIST Special Publication 800-30 Revision 1`, `NIST SP 800-30 Rev. 1`, `SP 800-30r1` |
+| SP 800-63's suffix revision | `NIST SP 800-63B-4`, `NIST Special Publication 800-63B Revision 4` |
+| A supplement | `NIST SP 800-63Bsup1`, `NIST SP 800-63B Supplement 1` |
+| Roman-numeral volumes | `NIST SP 800-60 Volume I`, `NIST SP 800-60 Vol. 1` |
+| `Control` as a location word | `NIST SP 800-53 Control AC-2` is `NIST SP 800-53` |
 
-## What binding shows
+And the relations it labels, between a citation and a document whose
+identifier extends it:
 
-The worksheet records the document each citation actually means, so neither
-ingestion binds every question:
+| Citation | Document | Relation |
+| --- | --- | --- |
+| `NIST SP 800-53` | SP 800-53 Rev. 5 | `revision` |
+| `NIST SP 800-53` | SP 800-53A Rev. 5, SP 800-53B | `companion` |
+| `NIST SP 800-63B` | SP 800-63B-4 | `revision` |
+| `NIST SP 800-57 Part 1` | SP 800-57 Part 1 Rev. 6 (initial public draft) | `draft revision` |
 
-- `sp800-2026` labels 18 of 25. It cannot label the citations of superseded
-  editions, nor the withdrawn supplement.
-- `sp800-2020` labels 15 of 25. It cannot label the citations of editions
-  not yet issued.
-
-Comparing the two ingestions is the test case for the ingestion diff
-proposed in [discussion #20](https://github.com/soliplex/exquisite/discussions/20).
-
-## The worksheet
-
-The answers were drafted by an agent from the documents' text, and have not
-been reviewed by a person:  `validated_by:` is deliberately blank.
+SP 800-63-4 is a sibling of SP 800-63B-4, not a revision of SP 800-63B, and
+the rules keep them apart. A draft cited without its part, as CSRC's own
+listing spells it (`NIST SP 800-57 Rev. 6`), does not collapse with
+`NIST SP 800-57 Part 1 Rev. 6`: the missing part is a real ambiguity, for a
+person to resolve.
