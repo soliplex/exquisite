@@ -29,6 +29,9 @@ exquisite check-retrieval --root data/nist-sp-800 --corpus sp800 \
   deliberately more than a chat agent's search limit: a newly ingested
   document relevant to a question can push a labelled one out of a short
   list without anything being broken.
+- `--out` saves the results to a file, to compare a later run against. An
+  existing file is refused, before any searching, unless `--force` is
+  passed too. Without `--out`, nothing is written.
 
 Binding problems are reported on stderr, as `bind` reports them. A
 worksheet that isn't ready to bind is refused.
@@ -47,7 +50,6 @@ only failing both by URI. So a database whose documents sit at different
 paths from the manifest's is still checked correctly.
 
 ```text
-results saved to check-retrieval.json
 20/20 questions passed;  mean retrieval_mrr 0.975
 ```
 
@@ -74,7 +76,7 @@ under some case's key, the question's `metadata.uuid`. Different versions of
 span them.
 
 `--baseline` reports misses and losses without failing. Read the report,
-then keep the run as the reference for the next one.
+then keep the run, saved with `--out`, as the reference for the next one.
 
 ## Exit status
 
@@ -86,12 +88,12 @@ or when the run is a `--baseline`. It exits with status 1 when:
 - the worksheet isn't ready to bind;
 - the database is missing, or haiku-rag won't search it as it stands (it
   needs migrating to the installed haiku-rag, say);
-- the `--compare` file isn't a results file, or is refused.
+- the `--compare` file isn't a results file, or is refused;
+- the `--out` file exists, and `--force` wasn't passed.
 
 ## The results file
 
-Every run that searches writes its results to `--out` (default
-`check-retrieval.json`), whatever its outcome:
+With `--out`, a run that searches saves its results, whatever its outcome:
 
 ```json
 {
