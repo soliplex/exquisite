@@ -93,13 +93,13 @@ under some case's key, the question's `metadata.uuid`. Different versions of
 `exquisite` or haiku-rag only warn: a check across an upgrade is meant to
 span them.
 
-`--baseline` reports misses and losses without failing. Read the report,
-then keep the run, saved with `--out`, as the reference for the next one.
+Any run saved with `--out` can be a reference, including one that failed:
+read its report, then compare the next run against it.
 
 ## Exit status
 
-`check-retrieval` exits with status 0 when every eligible question passes,
-or when the run is a `--baseline`. It exits with status 1 when:
+`check-retrieval` exits with status 0 when every eligible question passes.
+It exits with status 1 when:
 
 - a question misses, or loses against `--compare`;
 - no question is eligible;
@@ -136,7 +136,6 @@ With `--out`, a run that searches saves its results, whatever its outcome:
   "substrate": {"exquisite": "0.2", "haiku-rag-slim": "0.89.0"},
   "started": "2026-10-03T08:58:41",
   "finished": "2026-10-03T08:58:45",
-  "baseline": false,
   "cases": [
     {
       "key": "33e57977-…",

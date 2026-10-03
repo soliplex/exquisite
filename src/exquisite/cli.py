@@ -216,7 +216,7 @@ def _check_retrieval(args: argparse.Namespace) -> int:
     The bound question set is never written:  binding problems are reported
     on stderr, as `bind` reports them, and the questions they leave without
     labels are ineligible.  With ``--out``, the run is saved whatever its
-    outcome, so a failing run can still be read, or adopted as a baseline;
+    outcome, so a failing run can still be read, or adopted as a reference;
     an existing file is refused before any work, unless ``--force``.
     """
     if args.out is not None and args.out.exists() and not args.force:
@@ -267,7 +267,6 @@ def _check_retrieval(args: argparse.Namespace) -> int:
             settings=settings,
             database=database,
             substrate=search.substrate(),
-            baseline=args.baseline,
         )
 
         # Checked before searching, so a bad reference fails before the
@@ -454,11 +453,6 @@ def main() -> None:
         type=pathlib.Path,
         default=None,
         help="results of a prior check-retrieval to compare against",
-    )
-    check_cmd.add_argument(
-        "--baseline",
-        action="store_true",
-        help="report misses and losses without failing, to adopt this run",
     )
     check_cmd.add_argument(
         "--top-k",

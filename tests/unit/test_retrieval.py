@@ -175,7 +175,6 @@ def test_results_round_trip_through_a_file(tmp_path):
         substrate={"exquisite": "0.2"},
         started="2026-10-03T09:00:00",
         finished="2026-10-03T09:00:05",
-        baseline=True,
     )
     retrieval.save(original, path)
 
@@ -273,17 +272,17 @@ def test_check_against_a_reference():
 
 
 @pytest.mark.parametrize(
-    "baseline, cases, expected",
+    "cases, expected",
     [
-        (False, [case("hit", retrieved=["file:///iso.pdf"])], False),
-        (True, [case("miss")], False),
-        # Nothing eligible is a failure, baseline or not.
-        (True, [case("x", relevant=())], True),
-        (False, [], True),
+        ([case("hit", retrieved=["file:///iso.pdf"])], False),
+        ([case("miss")], True),
+        # Nothing eligible is a failure.
+        ([case("x", relevant=())], True),
+        ([], True),
     ],
 )
-def test_outcome_failed(baseline, cases, expected):
-    outcome = retrieval.check(run(*cases, baseline=baseline))
+def test_outcome_failed(cases, expected):
+    outcome = retrieval.check(run(*cases))
 
     result = outcome.failed
 
@@ -405,7 +404,7 @@ def test_report_a_clean_run():
     assert result == ["1/1 questions passed;  mean retrieval_mrr 1.000"]
 
 
-def test_report_against_a_reference_as_a_baseline():
+def test_report_against_a_reference():
     both = ("file:///iso.pdf", "file:///iec.pdf")
     reference = run(
         case("lost", retrieved=["file:///iso.pdf"]),
@@ -416,7 +415,6 @@ def test_report_against_a_reference_as_a_baseline():
         case("dropped", relevant=both, retrieved=["file:///iec.pdf"]),
         case("new", retrieved=[]),
         case("unlabelled", relevant=()),
-        baseline=True,
     )
     outcome = retrieval.check(checked, reference)
 
@@ -437,17 +435,7 @@ def test_report_against_a_reference_as_a_baseline():
         "mean retrieval_mrr over the questions in ref.json fell "
         "1.000 -> 0.500, by more than 0.02",
         "1/3 questions passed;  mean retrieval_mrr 0.333",
-        "accepted as a baseline:  2 question(s) reported, not failed",
     ]
-
-
-def test_report_a_clean_baseline():
-    checked = run(case("a", retrieved=["file:///iso.pdf"]), baseline=True)
-    outcome = retrieval.check(checked)
-
-    result = retrieval.report(outcome)
-
-    assert result[-1] == "accepted as a baseline"
 
 
 @pytest.mark.parametrize(
