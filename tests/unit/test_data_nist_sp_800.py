@@ -6,10 +6,13 @@ companions, supplements, Roman-numeral volumes, parts, and drafts.  These
 tests pin the snapshots and what the rules make of those citations.
 """
 
+import json
 import pathlib
 
 import pytest
 
+from exquisite import bind
+from exquisite import corpus as corpus_mod
 from exquisite import designators
 from exquisite import manifest
 from exquisite import rules as rules_mod
@@ -17,6 +20,7 @@ from exquisite import worksheets
 
 DATA = pathlib.Path(__file__).parents[2] / "data" / "nist-sp-800"
 INGESTIONS = DATA / "corpus" / "sp800" / "ingestion"
+WORKSHEETS = DATA / "corpus" / "sp800" / "worksheet"
 
 
 @pytest.fixture
@@ -107,3 +111,39 @@ def test_each_snapshot_records_its_date(stem, as_of):
     loaded = manifest.load(INGESTIONS / f"{stem}.csv")
 
     assert str(loaded.about["as_of"]) == as_of
+
+
+def test_every_question_cites_a_designator_the_worksheet_answers(rules):
+    cases = json.loads((DATA / "questions" / "sp800-2020.json").read_text())[
+        "cases"
+    ]
+
+    answers, _ = worksheets.preserved_answers(WORKSHEETS / "sp800-2020.yaml")
+
+    cited = {
+        designators.designator(case["metadata"]["reference"], rules)
+        for case in cases
+    }
+    assert cited == set(answers)
+    assert all(answer.get("documents") for answer in answers.values())
+
+
+def test_binding_labels_every_question_against_its_snapshot(rules):
+    corpus_dir = corpus_mod.find(DATA, "sp800")
+    snapshot = manifest.load(corpus_dir.ingestion("sp800-2020"))
+
+    document, tally = bind.bind_file(
+        corpus_dir=corpus_dir,
+        question_set=corpus_mod.find_question_set(DATA, "sp800-2020"),
+        root=DATA,
+        corpus=snapshot,
+        rules=rules,
+    )
+
+    uris = {doc.uri for doc in snapshot.documents}
+    labels = [
+        case["metadata"].get(bind.LABEL_KEY) for case in document["cases"]
+    ]
+    assert tally["labelled"] == len(document["cases"]) == 20
+    assert not tally["unbound"]
+    assert all(label and set(label) <= uris for label in labels)

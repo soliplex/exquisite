@@ -22,10 +22,13 @@ exquisite.yaml                          normalization rules for NIST spellings
 corpus/sp800/
   ingestion/sp800-2020.{csv,yaml}       the editions current on 2020-06-30
   ingestion/sp800-2026.{csv,yaml}       the editions current on 2026-10-02
+  worksheet/sp800-2020.yaml             which documents each citation means
+questions/sp800-2020.json               20 questions, as asked in mid-2020
 ```
 
-A question set written against the 2020 snapshot, and its worksheet, are
-being drafted.
+The question set is written against the 2020 snapshot: each question cites
+an edition current then. Its worksheet is validated, and every question
+binds to a document in that snapshot.
 
 ## The documents
 
