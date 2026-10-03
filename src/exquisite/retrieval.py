@@ -74,6 +74,9 @@ DEFAULT_MRR_TOLERANCE = 0.02
 #: runs;  a real drop is at least one rank's worth.
 TOLERANCE = 1e-9
 
+#: How many of a miss's results `details` names.
+SHOWN_ON_MISS = 3
+
 #: Settings that, differing, make a reference incomparable.
 COMPARED_SETTINGS = (
     ("embedder", "configured embedder"),
@@ -166,6 +169,18 @@ class CaseResult:
         retrieved = set(self.retrieved)
 
         return [uri for uri in self.relevant if uri in retrieved]
+
+    @property
+    def rank(self) -> int | None:
+        """Where the first relevant document came;  None for a miss, or an
+        ineligible question."""
+        relevant = set(self.relevant)
+
+        for rank, uri in enumerate(self.retrieved, start=1):
+            if uri in relevant:
+                return rank
+
+        return None
 
 
 @dataclasses.dataclass
@@ -541,6 +556,40 @@ def corpus_change(run: Run, reference: Run) -> str | None:
         f"{before['documents']} -> {after['documents']} documents, "
         f"{before.get('chunks')} -> {after.get('chunks')} chunks"
     )
+
+
+def _names(uris: list[str]) -> str:
+    """Documents by name, for a person:  the full URIs are in the results."""
+    return ", ".join(manifest.Document(uri=uri).name for uri in uris)
+
+
+def details(run: Run) -> list[str]:
+    """One line per question, in question-set order:  where its first
+    relevant document ranked, and what came ahead of it or, for a miss,
+    what came first."""
+    lines = ["rank  mrr    question"]
+
+    for case in run.cases:
+        if not case.eligible:
+            lines.append(f"   -  -      {case.question}")
+            lines.append("             ineligible:  no relevant documents")
+            continue
+
+        rank = case.rank
+
+        if rank is None:
+            lines.append(f"   -  0.000  {case.question}")
+            shown = case.retrieved[:SHOWN_ON_MISS]
+            lines.append(f"             top: {_names(shown) or '(nothing)'}")
+            continue
+
+        lines.append(f"{rank:4d}  {case.score:.3f}  {case.question}")
+
+        if rank > 1:
+            ahead = case.retrieved[: rank - 1]
+            lines.append(f"             after: {_names(ahead)}")
+
+    return lines
 
 
 def report(outcome: Outcome, reference_name: str | None = None) -> list[str]:

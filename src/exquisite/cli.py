@@ -313,6 +313,10 @@ def _check_retrieval(args: argparse.Namespace) -> int:
         retrieval.save(run, args.out)
         print(f"results saved to {args.out}")
 
+    if args.verbose:
+        for line in retrieval.details(run):
+            print(line)
+
     for line in retrieval.report(outcome, reference_name):
         print(line)
 
@@ -481,6 +485,12 @@ def main() -> None:
         "--force",
         action="store_true",
         help="replace an existing --out file",
+    )
+    check_cmd.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="show each question's rank, and what came ahead of it",
     )
     add_common(check_cmd, date=False)
     check_cmd.set_defaults(func=_check_retrieval)

@@ -448,3 +448,55 @@ def test_report_a_clean_baseline():
     result = retrieval.report(outcome)
 
     assert result[-1] == "accepted as a baseline"
+
+
+@pytest.mark.parametrize(
+    "relevant, retrieved, expected",
+    [
+        (("a",), ["a", "b"], 1),
+        (("b", "c"), ["a", "c", "b"], 2),
+        (("a",), ["x", "y"], None),
+        ((), ["a"], None),
+    ],
+)
+def test_rank_of_the_first_relevant_document(relevant, retrieved, expected):
+    found = case("k", relevant=relevant, retrieved=retrieved)
+
+    result = found.rank
+
+    assert result == expected
+
+
+def test_details_one_line_per_question_in_order():
+    checked = run(
+        case("first", retrieved=["file:///iso.pdf"]),
+        case(
+            "third",
+            retrieved=[
+                "file:///a/x%20y.pdf",
+                "file:///bulletin.pdf#attachment=a.pdf",
+                "file:///iso.pdf",
+            ],
+        ),
+        case(
+            "missed",
+            retrieved=["file:///1.pdf", "file:///2.pdf", "file:///3.pdf", "4"],
+        ),
+        case("nothing", retrieved=[]),
+        case("unlabelled", relevant=()),
+    )
+
+    result = retrieval.details(checked)
+
+    assert result == [
+        "rank  mrr    question",
+        "   1  1.000  question first",
+        "   3  0.333  question third",
+        "             after: x y.pdf, a.pdf",
+        "   -  0.000  question missed",
+        "             top: 1.pdf, 2.pdf, 3.pdf",
+        "   -  0.000  question nothing",
+        "             top: (nothing)",
+        "   -  -      question unlabelled",
+        "             ineligible:  no relevant documents",
+    ]

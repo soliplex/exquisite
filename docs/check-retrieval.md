@@ -29,6 +29,7 @@ exquisite check-retrieval --root data/nist-sp-800 --corpus sp800 \
   deliberately more than a chat agent's search limit: a newly ingested
   document relevant to a question can push a labelled one out of a short
   list without anything being broken.
+- `-v` / `--verbose` shows each question's result, as well as the summary.
 - `--out` saves the results to a file, to compare a later run against. An
   existing file is refused, before any searching, unless `--force` is
   passed too. Without `--out`, nothing is written.
@@ -52,6 +53,23 @@ paths from the manifest's is still checked correctly.
 ```text
 20/20 questions passed;  mean retrieval_mrr 0.975
 ```
+
+With `--verbose`, each question gets a line first, in question-set order:
+the rank of its first relevant document, its `retrieval_mrr`, and the
+question. Below a question not at rank 1 are the documents that came ahead
+of it. Below a miss are the first few that came back instead:
+
+```text
+rank  mrr    question
+   1  1.000  What are the steps of a risk assessment?
+   ...
+   2  0.500  What levels of potential impact are used to categorize information and systems?
+             after: NIST.SP.800-53r4.pdf
+   ...
+20/20 questions passed;  mean retrieval_mrr 0.975
+```
+
+Documents are shown by name; the results file has their full URIs.
 
 ## Comparing with an earlier run
 
