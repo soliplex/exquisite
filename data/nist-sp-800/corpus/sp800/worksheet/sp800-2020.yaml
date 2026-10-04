@@ -15,12 +15,12 @@
 version: 1
 question_set: questions/sp800-2020.json
 database: sp800-2020
-generated: 2026-10-02
+generated: 2026-10-04
 corpus_documents: 8   # at generation; a mismatch means recheck
 substrate: unknown   # embedder/chunking digest of the ingestion
-rules: d01acf0238e4   # normalization v1, built-ins + caller rules
-validated_by: TS
-validated_on: 2026-10-02
+rules: 655362f5e150   # normalization v1, built-ins + caller rules
+validated_by: 'TS'
+validated_on: 2026-10-04
 
 designators:
 

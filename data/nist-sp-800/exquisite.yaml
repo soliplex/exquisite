@@ -14,13 +14,6 @@ designators:
     - {pattern: '\brev(?:ision)?\.?\s*(\d+)', replace: 'r\1'}
     # "Part 1" -> "pt1"
     - {pattern: '\bpart\s*(\d+)', replace: 'pt\1'}
-    # SP 800-63's own revision syntax:  "800-63B-4" -> "800-63B r4"
-    - {pattern: '\b(800-63[abc]?)-(\d+)\b', replace: '\1 r\2'}
-    # "800-63Bsup1" -> "800-63B supp 1"
-    - {pattern: '(\d[a-c]?)sup(\d+)\b', replace: '\1 supp \2'}
-    # "(Initial Public Draft)", "(Draft)", ".ipd" -> "ipd"
-    - {pattern: '\s*\((?:initial\s+|second\s+|final\s+)?(?:public\s+)?draft\)', replace: ' ipd'}
-    - {pattern: '\.ipd\b', replace: ' ipd'}
   series:
     # Filenames lead with "NIST.SP." or the legacy "nistspecialpublication".
     sp: [nist, nistspecialpublication]
@@ -28,8 +21,5 @@ designators:
 
 relations:
   # Checked on what an identifier adds beyond a cited key:  a citation of
-  # "SP 800-53" with no revision lists Rev. 4 and Rev. 5 as revisions, and
-  # SP 800-53A / 800-53B as companions, not as sub-publications.
+  # "SP 800-30" with no revision lists Rev. 1 as a revision of it.
   - {pattern: '^r\d+$', label: revision}
-  - {pattern: '^r\d+ipd$', label: draft revision}
-  - {pattern: '^[a-c](?:r\d+)?$', label: companion}
