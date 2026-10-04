@@ -14,7 +14,8 @@ that:
 2. it generates a *worksheet* in which a person who knows the corpus records
    which documents each citation means;
 3. it *binds* the question set to one ingestion, writing the documents'
-   current URIs into each question as `metadata.relevant_uris`.
+   current URIs into each question as `metadata.relevant_uris`;
+4. it *checks* that a RAG database's searches return those documents.
 
 ## Contents
 
@@ -26,6 +27,8 @@ that:
 - [Worksheets](worksheets.md): recording which documents each citation
   means
 - [Binding](binding.md): labelling a question set for one ingestion
+- [Checking retrieval](check-retrieval.md): searching a database for each
+  question, and checking for its documents
 - [Normalization rules](rules.md): how citations are grouped, and how to
   extend the rules
 - [Development](development.md)

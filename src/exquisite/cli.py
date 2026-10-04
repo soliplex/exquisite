@@ -14,7 +14,9 @@ from exquisite import bind as bind_mod
 from exquisite import corpus as corpus_mod
 from exquisite import manifest as manifest_mod
 from exquisite import resolve as resolve_mod
+from exquisite import retrieval
 from exquisite import rules as rules_mod
+from exquisite import search
 from exquisite import worksheets
 
 
@@ -143,6 +145,24 @@ def _resolve_references(args: argparse.Namespace) -> int:
     return 1 if failed else 0
 
 
+def _bind_problems(tally: dict) -> int:
+    """Report what binding could not do, on stderr;  how many failed."""
+    failed = 0
+
+    for reference in tally["unknown_reference"]:
+        print(f"no apply_key for reference {reference!r}", file=sys.stderr)
+        failed += 1
+
+    for note in tally["unbound"]:
+        print(note, file=sys.stderr)
+        failed += 1
+
+    for note in tally["changed"]:
+        print(f"CHANGED since validation: {note}", file=sys.stderr)
+
+    return failed
+
+
 def _bind(args: argparse.Namespace) -> int:
     """Bind one question set against one corpus.
 
@@ -168,18 +188,7 @@ def _bind(args: argparse.Namespace) -> int:
 
         return 1
 
-    failed = 0
-
-    for reference in tally["unknown_reference"]:
-        print(f"no apply_key for reference {reference!r}", file=sys.stderr)
-        failed += 1
-
-    for note in tally["unbound"]:
-        print(note, file=sys.stderr)
-        failed += 1
-
-    for note in tally["changed"]:
-        print(f"CHANGED since validation: {note}", file=sys.stderr)
+    failed = _bind_problems(tally)
 
     text = json.dumps(document, indent=2, ensure_ascii=False) + "\n"
 
@@ -194,6 +203,109 @@ def _bind(args: argparse.Namespace) -> int:
         sys.stdout.write(text)
 
     return 1 if failed else 0
+
+
+def _now() -> str:
+    return datetime.datetime.now().isoformat(timespec="seconds")
+
+
+def _check_retrieval(args: argparse.Namespace) -> int:
+    """Bind one question set, search a database for each question, and check
+    that the results hold the documents it was bound to.
+
+    The bound question set is never written:  binding problems are reported
+    on stderr, as `bind` reports them, and the questions they leave without
+    labels are ineligible.  The run is saved to ``--out`` whatever its
+    outcome, so a failing run can still be read, or adopted as a baseline.
+    """
+    corpus_dir = corpus_mod.find(args.root, args.corpus)
+    question_set = corpus_mod.find_question_set(args.root, args.questions)
+    corpus = manifest_mod.load(corpus_dir.ingestion(args.ingestion))
+
+    try:
+        document, tally = bind_mod.bind_file(
+            corpus_dir=corpus_dir,
+            question_set=question_set,
+            root=args.root,
+            corpus=corpus,
+            rules=args.rules,
+        )
+    except bind_mod.WorksheetError as exc:
+        print(exc, file=sys.stderr)
+
+        return 1
+
+    _bind_problems(tally)
+    asked = retrieval.questions(document["cases"])
+    eligible = [question for question in asked if question.relevant]
+    config, displaced = search.for_path(search.load_config(args.config))
+
+    if displaced:
+        print(
+            f"searching {args.db} instead of the configuration's databases "
+            f"({', '.join(displaced)})"
+        )
+
+    reference = None
+    reference_name = str(args.compare) if args.compare else None
+
+    try:
+        settings, database = search.describe(args.db, config, args.top_k)
+        run = retrieval.Run(
+            question_set=question_set.relative,
+            corpus=corpus_dir.name,
+            ingestion=corpus.database,
+            settings=settings,
+            database=database,
+            substrate=search.substrate(),
+            baseline=args.baseline,
+        )
+
+        # Checked before searching, so a bad reference fails before the
+        # work does.
+        if args.compare:
+            reference = retrieval.load(args.compare)
+
+            for warning in retrieval.check_settings(
+                run, reference, reference_name
+            ):
+                print(f"{reference_name}: {warning}", file=sys.stderr)
+
+            retrieval.check_pairing(asked, reference, reference_name)
+            change = retrieval.corpus_change(run, reference)
+
+            if change:
+                print(change)
+
+        run.started = _now()
+        hits = search.search(args.db, config, eligible, args.top_k)
+        run.finished = _now()
+    except (
+        search.NoDatabase,
+        search.CannotSearch,
+        retrieval.NotAResultsFile,
+        retrieval.IncomparableReference,
+    ) as exc:
+        print(exc, file=sys.stderr)
+
+        return 1
+
+    found = {
+        question.key: found
+        for question, found in zip(eligible, hits, strict=True)
+    }
+    run.cases = [
+        retrieval.score(question, found.get(question.key, []), corpus)
+        for question in asked
+    ]
+    retrieval.save(run, args.out)
+    print(f"results saved to {args.out}")
+    outcome = retrieval.check(run, reference, args.mrr_tolerance)
+
+    for line in retrieval.report(outcome, reference_name):
+        print(line)
+
+    return 1 if outcome.failed else 0
 
 
 def main() -> None:
@@ -212,7 +324,7 @@ def main() -> None:
             ),
         )
 
-    def add_common(parser_):
+    def add_common(parser_, *, date=True):
         parser_.add_argument(
             "--root",
             type=_data_root,
@@ -236,6 +348,10 @@ def main() -> None:
             default=None,
             help="which manifest to use, when a corpus has more than one",
         )
+
+        if not date:
+            return
+
         parser_.add_argument(
             "--date",
             default=datetime.date.today().isoformat(),
@@ -295,6 +411,63 @@ def main() -> None:
     )
     add_common(bind_cmd)
     bind_cmd.set_defaults(func=_bind)
+
+    check_cmd = sub.add_parser(
+        "check-retrieval",
+        help=(
+            "search a RAG database for each question, and check that the "
+            "results hold the documents it is bound to"
+        ),
+    )
+    check_cmd.add_argument("--corpus", required=True, help="corpus name")
+    check_cmd.add_argument(
+        "--questions", required=True, help="question set stem"
+    )
+    check_cmd.add_argument(
+        "--db",
+        required=True,
+        help="the haiku-rag database to search:  a path or a URI",
+    )
+    check_cmd.add_argument(
+        "--config",
+        type=pathlib.Path,
+        default=None,
+        help="haiku-rag YAML configuration (default: haiku-rag's defaults)",
+    )
+    check_cmd.add_argument(
+        "--compare",
+        type=pathlib.Path,
+        default=None,
+        help="results of a prior check-retrieval to compare against",
+    )
+    check_cmd.add_argument(
+        "--baseline",
+        action="store_true",
+        help="report misses and losses without failing, to adopt this run",
+    )
+    check_cmd.add_argument(
+        "--top-k",
+        type=int,
+        default=retrieval.DEFAULT_TOP_K,
+        help="results per search (default: %(default)s)",
+    )
+    check_cmd.add_argument(
+        "--mrr-tolerance",
+        type=float,
+        default=retrieval.DEFAULT_MRR_TOLERANCE,
+        help=(
+            "how far the mean retrieval_mrr may fall below the reference's "
+            "before the report says so (default: %(default)s)"
+        ),
+    )
+    check_cmd.add_argument(
+        "--out",
+        type=pathlib.Path,
+        default=pathlib.Path("check-retrieval.json"),
+        help="where to write the results (default: %(default)s)",
+    )
+    add_common(check_cmd, date=False)
+    check_cmd.set_defaults(func=_check_retrieval)
 
     args = parser.parse_args()
 
