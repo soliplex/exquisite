@@ -31,9 +31,8 @@ The checks depend on the reference run, if any:
   a tolerance.  A question the reference does not have is checked for a miss
   instead.
 
-A run taken as a *baseline* is accepted as it is:  its misses and losses are
-reported, not failed, so that someone who has read the report can adopt it as
-the next reference.
+Any saved run can be a reference:  a failing one is saved too, so someone
+who has read its report can adopt it as the next reference.
 
 A reference taken with a different embedder, reranker or top K is refused:
 against it, most questions would differ for reasons that have nothing to do
@@ -73,6 +72,9 @@ DEFAULT_MRR_TOLERANCE = 0.02
 #: Slack for comparing two averages of the same ranks computed on different
 #: runs;  a real drop is at least one rank's worth.
 TOLERANCE = 1e-9
+
+#: How many of a miss's results `details` names.
+SHOWN_ON_MISS = 3
 
 #: Settings that, differing, make a reference incomparable.
 COMPARED_SETTINGS = (
@@ -120,7 +122,7 @@ class QuestionsDiffer(IncomparableReference):
         super().__init__(
             f"cannot compare against {reference}:  {len(keys)} question(s) "
             f"differ under the same key ({shown}{more});  the question set "
-            "changed since the reference was taken, so take a new baseline"
+            "changed since the reference was taken, so save a new reference"
         )
 
 
@@ -167,6 +169,18 @@ class CaseResult:
 
         return [uri for uri in self.relevant if uri in retrieved]
 
+    @property
+    def rank(self) -> int | None:
+        """Where the first relevant document came;  None for a miss, or an
+        ineligible question."""
+        relevant = set(self.relevant)
+
+        for rank, uri in enumerate(self.retrieved, start=1):
+            if uri in relevant:
+                return rank
+
+        return None
+
 
 @dataclasses.dataclass
 class Run:
@@ -185,7 +199,6 @@ class Run:
     substrate: dict = dataclasses.field(default_factory=dict)
     started: str = ""
     finished: str = ""
-    baseline: bool = False
     cases: list[CaseResult] = dataclasses.field(default_factory=list)
 
     @property
@@ -370,7 +383,7 @@ class Outcome:
 
     @property
     def n_failing(self) -> int:
-        """Questions that fail the check, unless it is taken as a baseline."""
+        """Questions that fail the check."""
         return len(self.misses) + len(self.losses)
 
     @property
@@ -378,7 +391,7 @@ class Outcome:
         if self.n_eligible == 0:
             return True
 
-        return not self.run.baseline and self.n_failing > 0
+        return self.n_failing > 0
 
     @property
     def mean_fell(self) -> bool:
@@ -543,6 +556,40 @@ def corpus_change(run: Run, reference: Run) -> str | None:
     )
 
 
+def _names(uris: list[str]) -> str:
+    """Documents by name, for a person:  the full URIs are in the results."""
+    return ", ".join(manifest.Document(uri=uri).name for uri in uris)
+
+
+def details(run: Run) -> list[str]:
+    """One line per question, in question-set order:  where its first
+    relevant document ranked, and what came ahead of it or, for a miss,
+    what came first."""
+    lines = ["rank  mrr    question"]
+
+    for case in run.cases:
+        if not case.eligible:
+            lines.append(f"   -  -      {case.question}")
+            lines.append("             ineligible:  no relevant documents")
+            continue
+
+        rank = case.rank
+
+        if rank is None:
+            lines.append(f"   -  0.000  {case.question}")
+            shown = case.retrieved[:SHOWN_ON_MISS]
+            lines.append(f"             top: {_names(shown) or '(nothing)'}")
+            continue
+
+        lines.append(f"{rank:4d}  {case.score:.3f}  {case.question}")
+
+        if rank > 1:
+            ahead = case.retrieved[: rank - 1]
+            lines.append(f"             after: {_names(ahead)}")
+
+    return lines
+
+
 def report(outcome: Outcome, reference_name: str | None = None) -> list[str]:
     """The outcome, as lines for a person."""
     if outcome.n_eligible == 0:
@@ -593,18 +640,10 @@ def report(outcome: Outcome, reference_name: str | None = None) -> list[str]:
             f"{outcome.mrr_tolerance}"
         )
 
-    n_failed = outcome.n_failing
+    passed = outcome.n_eligible - outcome.n_failing
     lines.append(
-        f"{outcome.n_eligible - n_failed}/{outcome.n_eligible} questions "
+        f"{passed}/{outcome.n_eligible} questions "
         f"passed;  mean {RETRIEVAL_MRR} {outcome.run.mean():.3f}"
     )
-
-    if outcome.run.baseline:
-        reported = (
-            f":  {n_failed} question(s) reported, not failed"
-            if n_failed
-            else ""
-        )
-        lines.append(f"accepted as a baseline{reported}")
 
     return lines

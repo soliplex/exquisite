@@ -525,3 +525,66 @@ def test_check_retrieval_never_opens_a_missing_database(
     assert status == 1
     assert "no database at db.lancedb" in capsys.readouterr().err
     assert not (bound / "db.lancedb").exists()
+
+
+def test_check_retrieval_writes_nothing_without_out(
+    monkeypatch, capsys, bound
+):
+    found(monkeypatch, ISO_MOVED)
+    monkeypatch.chdir(bound)
+    before = sorted(bound.rglob("*"))
+
+    status = run_check(monkeypatch, bound)
+
+    assert status == 0
+    assert "results saved" not in capsys.readouterr().out
+    assert sorted(bound.rglob("*")) == before
+
+
+def test_check_retrieval_refuses_an_existing_out_before_searching(
+    monkeypatch, capsys, bound
+):
+    fake = found(monkeypatch, ISO_MOVED)
+    out = bound / "results.json"
+    out.write_text("keep me")
+
+    status = run_check(monkeypatch, bound, "--out", str(out))
+
+    assert status == 1
+    assert capsys.readouterr().err == (
+        f"{out} exists;  pass --force to replace it\n"
+    )
+    assert fake.searched == []
+    assert out.read_text() == "keep me"
+
+
+def test_check_retrieval_replaces_an_existing_out_when_forced(
+    monkeypatch, bound
+):
+    found(monkeypatch, ISO_MOVED)
+    out = bound / "results.json"
+    out.write_text("replace me")
+
+    status = run_check(monkeypatch, bound, "--out", str(out), "--force")
+
+    assert status == 0
+    assert retrieval.load(out).cases[0].retrieved == ["file:///iso.pdf"]
+
+
+def test_check_retrieval_verbose_shows_each_question(
+    monkeypatch, capsys, bound
+):
+    found(monkeypatch, retrieval.Hit("file:///other.pdf"), ISO_MOVED)
+
+    status = run_check(monkeypatch, bound, "--verbose")
+
+    assert status == 0
+    assert capsys.readouterr().out == (
+        "rank  mrr    question\n"
+        "   2  0.500  question 0\n"
+        "             after: other.pdf\n"
+        "   -  -      question 1\n"
+        "             ineligible:  no relevant documents\n"
+        "1 question(s) ineligible:  no relevant documents\n"
+        "1/1 questions passed;  mean retrieval_mrr 0.500\n"
+    )

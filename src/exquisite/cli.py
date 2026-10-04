@@ -215,9 +215,18 @@ def _check_retrieval(args: argparse.Namespace) -> int:
 
     The bound question set is never written:  binding problems are reported
     on stderr, as `bind` reports them, and the questions they leave without
-    labels are ineligible.  The run is saved to ``--out`` whatever its
-    outcome, so a failing run can still be read, or adopted as a baseline.
+    labels are ineligible.  With ``--out``, the run is saved whatever its
+    outcome, so a failing run can still be read, or adopted as a reference;
+    an existing file is refused before any work, unless ``--force``.
     """
+    if args.out is not None and args.out.exists() and not args.force:
+        print(
+            f"{args.out} exists;  pass --force to replace it",
+            file=sys.stderr,
+        )
+
+        return 1
+
     corpus_dir = corpus_mod.find(args.root, args.corpus)
     question_set = corpus_mod.find_question_set(args.root, args.questions)
     corpus = manifest_mod.load(corpus_dir.ingestion(args.ingestion))
@@ -258,7 +267,6 @@ def _check_retrieval(args: argparse.Namespace) -> int:
             settings=settings,
             database=database,
             substrate=search.substrate(),
-            baseline=args.baseline,
         )
 
         # Checked before searching, so a bad reference fails before the
@@ -298,9 +306,15 @@ def _check_retrieval(args: argparse.Namespace) -> int:
         retrieval.score(question, found.get(question.key, []), corpus)
         for question in asked
     ]
-    retrieval.save(run, args.out)
-    print(f"results saved to {args.out}")
     outcome = retrieval.check(run, reference, args.mrr_tolerance)
+
+    if args.out is not None:
+        retrieval.save(run, args.out)
+        print(f"results saved to {args.out}")
+
+    if args.verbose:
+        for line in retrieval.details(run):
+            print(line)
 
     for line in retrieval.report(outcome, reference_name):
         print(line)
@@ -441,11 +455,6 @@ def main() -> None:
         help="results of a prior check-retrieval to compare against",
     )
     check_cmd.add_argument(
-        "--baseline",
-        action="store_true",
-        help="report misses and losses without failing, to adopt this run",
-    )
-    check_cmd.add_argument(
         "--top-k",
         type=int,
         default=retrieval.DEFAULT_TOP_K,
@@ -463,8 +472,19 @@ def main() -> None:
     check_cmd.add_argument(
         "--out",
         type=pathlib.Path,
-        default=pathlib.Path("check-retrieval.json"),
-        help="where to write the results (default: %(default)s)",
+        default=None,
+        help="write the results here, to compare a later run against",
+    )
+    check_cmd.add_argument(
+        "--force",
+        action="store_true",
+        help="replace an existing --out file",
+    )
+    check_cmd.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="show each question's rank, and what came ahead of it",
     )
     add_common(check_cmd, date=False)
     check_cmd.set_defaults(func=_check_retrieval)

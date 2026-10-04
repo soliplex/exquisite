@@ -29,6 +29,10 @@ exquisite check-retrieval --root data/nist-sp-800 --corpus sp800 \
   deliberately more than a chat agent's search limit: a newly ingested
   document relevant to a question can push a labelled one out of a short
   list without anything being broken.
+- `-v` / `--verbose` shows each question's result, as well as the summary.
+- `--out` saves the results to a file, to compare a later run against. An
+  existing file is refused, before any searching, unless `--force` is
+  passed too. Without `--out`, nothing is written.
 
 Binding problems are reported on stderr, as `bind` reports them. A
 worksheet that isn't ready to bind is refused.
@@ -47,9 +51,25 @@ only failing both by URI. So a database whose documents sit at different
 paths from the manifest's is still checked correctly.
 
 ```text
-results saved to check-retrieval.json
 20/20 questions passed;  mean retrieval_mrr 0.975
 ```
+
+With `--verbose`, each question gets a line first, in question-set order:
+the rank of its first relevant document, its `retrieval_mrr`, and the
+question. Below a question not at rank 1 are the documents that came ahead
+of it. Below a miss are the first few that came back instead:
+
+```text
+rank  mrr    question
+   1  1.000  What are the steps of a risk assessment?
+   ...
+   2  0.500  What levels of potential impact are used to categorize information and systems?
+             after: NIST.SP.800-53r4.pdf
+   ...
+20/20 questions passed;  mean retrieval_mrr 0.975
+```
+
+Documents are shown by name; the results file has their full URIs.
 
 ## Comparing with an earlier run
 
@@ -73,25 +93,25 @@ under some case's key, the question's `metadata.uuid`. Different versions of
 `exquisite` or haiku-rag only warn: a check across an upgrade is meant to
 span them.
 
-`--baseline` reports misses and losses without failing. Read the report,
-then keep the run as the reference for the next one.
+Any run saved with `--out` can be a reference, including one that failed:
+read its report, then compare the next run against it.
 
 ## Exit status
 
-`check-retrieval` exits with status 0 when every eligible question passes,
-or when the run is a `--baseline`. It exits with status 1 when:
+`check-retrieval` exits with status 0 when every eligible question passes.
+It exits with status 1 when:
 
 - a question misses, or loses against `--compare`;
 - no question is eligible;
 - the worksheet isn't ready to bind;
 - the database is missing, or haiku-rag won't search it as it stands (it
   needs migrating to the installed haiku-rag, say);
-- the `--compare` file isn't a results file, or is refused.
+- the `--compare` file isn't a results file, or is refused;
+- the `--out` file exists, and `--force` wasn't passed.
 
 ## The results file
 
-Every run that searches writes its results to `--out` (default
-`check-retrieval.json`), whatever its outcome:
+With `--out`, a run that searches saves its results, whatever its outcome:
 
 ```json
 {
@@ -116,7 +136,6 @@ Every run that searches writes its results to `--out` (default
   "substrate": {"exquisite": "0.2", "haiku-rag-slim": "0.89.0"},
   "started": "2026-10-03T08:58:41",
   "finished": "2026-10-03T08:58:45",
-  "baseline": false,
   "cases": [
     {
       "key": "33e57977-…",
