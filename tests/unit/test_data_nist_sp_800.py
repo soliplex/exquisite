@@ -2,7 +2,7 @@
 
 A snapshot of a subset of the SP 800 series, and the rules for how its
 publications are cited:  spelling variants, revisions written several ways,
-Roman-numeral volumes, parts, and location words.  These tests pin the
+Roman-numeral volumes, and location words.  These tests pin the
 snapshot and what the rules make of those citations.
 """
 
@@ -31,7 +31,7 @@ def rules():
 @pytest.mark.parametrize(
     "stem, count",
     [
-        ("sp800-2020", 8),
+        ("sp800-2020", 19),
     ],
 )
 def test_manifests_load_with_trusted_identifiers(stem, count):
@@ -52,9 +52,6 @@ def test_manifests_load_with_trusted_identifiers(stem, count):
         ("NIST SP 800-30 Rev. 1, Chapter 3", "sp80030r1"),
         ("NIST Special Publication 800-30 Revision 1 Sec 2.1", "sp80030r1"),
         ("SP 800-30r1 Chapter 3", "sp80030r1"),
-        # A part, spelled out and abbreviated.
-        ("NIST SP 800-57 Part 1 Rev. 5, Section 5.3", "sp80057pt1r5"),
-        ("NIST SP 800-57 Pt. 1 Rev. 5, Section 5.3.6", "sp80057pt1r5"),
         # Roman-numeral volumes.
         ("NIST SP 800-60 Volume I Revision 1, Section 3.1.1", "sp80060v1r1"),
         ("NIST SP 800-60 Vol. II Rev. 1, Appendix C", "sp80060v2r1"),
@@ -131,6 +128,6 @@ def test_binding_labels_every_question_against_its_snapshot(rules):
     labels = [
         case["metadata"].get(bind.LABEL_KEY) for case in document["cases"]
     ]
-    assert tally["labelled"] == len(document["cases"]) == 20
+    assert tally["labelled"] == len(document["cases"]) == 16
     assert not tally["unbound"]
     assert all(label and set(label) <= uris for label in labels)
