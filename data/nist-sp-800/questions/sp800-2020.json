@@ -20,7 +20,7 @@
         "uuid": "9727865e-b3a5-5474-9021-e234c1c8e27e",
         "question_number": "2",
         "type": "qa",
-        "reference": "NIST SP 800-30, Section 2.1"
+        "reference": "NIST SP 800-39, Section 2.2"
       }
     },
     {
@@ -163,7 +163,7 @@
         "uuid": "33e57977-c22b-5df6-a221-8e91012fb3d5",
         "question_number": "17",
         "type": "qa",
-        "reference": "NIST SP 800-60 Vol. 1 Rev. 1, Section 3.1.1"
+        "reference": "FIPS 199, Section 3"
       }
     },
     {
@@ -175,6 +175,171 @@
         "question_number": "18",
         "type": "qa",
         "reference": "NIST SP 800-60 Volume II Revision 1, Appendix C"
+      }
+    },
+    {
+      "name": "fisma-security-objectives",
+      "inputs": "What are the three security objectives identified under FISMA for information and information systems?",
+      "expected_output": "Confidentiality, integrity, and availability.",
+      "metadata": {
+        "uuid": "b7064fd0-d9b5-5f88-93cd-88ac653b40f2",
+        "question_number": "21",
+        "type": "qa",
+        "reference": "FIPS 199, Section 3"
+      }
+    },
+    {
+      "name": "aggregate-security-categorization",
+      "inputs": "How are security categorizations aggregated from components of an information system?",
+      "expected_output": "The aggregate value for each security objective is the highest value assigned for that objective in any component's categorization.",
+      "metadata": {
+        "uuid": "cbc2e955-5f0f-598d-95c3-0fd3f01a461e",
+        "question_number": "22",
+        "type": "qa",
+        "reference": "FIPS 199, Section 3"
+      }
+    },
+    {
+      "name": "adequate-security",
+      "inputs": "What does it mean for an information system to have adequate security?",
+      "expected_output": "its security is commensurate with the risk and magnitude of harm resulting from the loss, misuse, or unauthorized access to or modification of information.",
+      "metadata": {
+        "uuid": "fcb4afd2-9561-4b33-8e55-0021e0209c38",
+        "question_number": "23",
+        "type": "qa",
+        "reference": "fips 200, appendix a"
+      }
+    },
+    {
+      "name": "risk-management-framework-steps",
+      "inputs": "What are the seven steps which make up the Risk Management Framework (RMF)?",
+      "expected_output": "Prepare, Categorize, Select, Implement, Assess, Authorize, Monitor",
+      "metadata": {
+        "uuid": "1a6af75b-9990-4cef-924b-e357ccb42ecb",
+        "question_number": "24",
+        "type": "qa",
+        "reference": "SP 800-37, Chapter 3"
+      }
+    },
+    {
+      "name": "risk-management-framework-monitor-step",
+      "inputs": "What is the purpose of the Monitor step in the Risk Management Framework (RMF)?",
+      "expected_output": "The purpose of the Monitor step is to maintain an ongoing situational awareness about the security and privacy posture of the information system and the organization in support of risk management decisions.",
+      "metadata": {
+        "uuid": "dd820b3b-cc9d-42ea-97c1-a5dd45b3dc32",
+        "question_number": "25",
+        "type": "qa",
+        "reference": "SP 800-37, Section 3.7"
+      }
+    },
+    {
+      "name": "assessment-objectives-methods-objects",
+      "inputs": "What are the components of an assessment procedure for security and privacy controls?",
+      "expected_output": "An assessment procedure consists of a set of assessment objectives, each with an associated set of potential assessment methods and assessment objects.",
+      "metadata": {
+        "uuid": "c3be4ac7-4449-4051-9c45-43fc2f83a5ab",
+        "question_number": "26",
+        "type": "qa",
+        "reference": "SP 800-53A rev. 4, Section 2.4"
+      }
+    },
+    {
+      "name": "considerations-automating-iscm",
+      "inputs": "What should an organization consider when determining the extent of automation of an information security continuous monitoring (ISCM) program?",
+      "expected_output": "When determining the extent to which the organization automates ISCM, organizations consider potential efficiencies of process standardization that may be gained with automation, and the potential value (or lack of value) of the automated security-related information from a risk management perspective. Additionally, organizations consider intangibles such as the potential value of personnel reassignment and more comprehensive situational awareness.",
+      "metadata": {
+        "uuid": "b5157f81-8c02-4f81-a565-cb4cacefe663",
+        "question_number": "27",
+        "type": "qa",
+        "reference": "SP 800-137, Section 2.3"
+      }
+    },
+    {
+      "name": "scoring-iscm-assessments",
+      "inputs": "How are individual ISCM assessment judgements aggregated to create an overall assessment score?",
+      "expected_output": "Using default binary judgement values, each assessment is assigned a value of '1' ('Satisfied') or '0' ('Other than satisfied'). Individual elements can be multiplied by a weighting factor.  The overall result can be expressed as a percentage by dividing the sum of the scores by the best possible score.",
+      "metadata": {
+        "uuid": "8ccb74cd-b536-408d-b56e-289e635c8310",
+        "question_number": "28",
+        "type": "qa",
+        "reference": "SP 800-137A, Section 2.2.10"
+      }
+    },
+    {
+      "name": "business-areas-identifying-information-types",
+      "inputs": "What four business areas are used to identify information types when mapping information and information systems to security categories?",
+      "expected_output": "The purpose of government (services for citizens); the mechanisms the government uses to achieve its purpose (mode of delivery); the support functions needed to conduct government operations (support delivery of services); the resource management functions that support all areas of the government's business (management of government resources)",
+      "metadata": {
+        "uuid": "f29ba1f6-26f0-403e-85c2-232063af29e4",
+        "question_number": "29",
+        "type": "qa",
+        "reference": "SP 800-60 Vol. 1 Rev. 1, Section 4.1"
+      }
+    },
+    {
+      "name": "authentication-process-strength-levels",
+      "inputs": "What labels and their corresponding requirements are used to describe the strength of an authentication process?",
+      "expected_output": "AAL1 requires single-factor authentication; AAL2 requires two authentication factors; AAL3 requires the use of a hardware-based authenticator and verifier impersonation resistance",
+      "metadata": {
+        "uuid": "971d3229-f3f1-48aa-b160-ace5371b3eb8",
+        "question_number": "30",
+        "type": "qa",
+        "reference": "SP 800-63-3, Ch. 4"
+      }
+    },
+    {
+      "name": "role-of-biometrics-in-identity-assurance-level-3",
+      "inputs": "How are biometrics used to protect the identity and relying party (RP) at Identity Assurance Level 3?",
+      "expected_output": "To detect fraudulent and duplicate enrollments, and as a mechanism to re-establish binding to a credential. The CSP collects and records a biometric sample at the time of proofing (for example, a facial image or fingerprints) for non-repudiation and re-proofing.",
+      "metadata": {
+        "uuid": "1e4e5c12-e825-422f-985e-fa4986afb1fb",
+        "question_number": "31",
+        "type": "qa",
+        "reference": "SP 800-63A, Section 4.5"
+      }
+    },
+    {
+      "name": "disaster-recovery-plan-vs-info-system-contingency-plan",
+      "inputs": "How does an information system contingency plan (ISCP) differ from a disaster recovery plan (DRP)?",
+      "expected_output": "The ISCP differs from a DRP primarily in that the information system contingency plan procedures are developed for recovery of the system regardless of site or location. An ISCP can be activated at the system’s current location or at an alternate site. In contrast, a DRP is primarily a site-specific plan developed with procedures to move operations of one or more information systems from a damaged or uninhabitable location to a temporary alternate location. Once the DRP has successfully transferred an information system site to an alternate site, each affected system would then use its respective ISCP to restore, recover, and test systems, and put them into operation.",
+      "metadata": {
+        "uuid": "856874b5-6cad-4818-9c85-6cde79839d5f",
+        "question_number": "32",
+        "type": "qa",
+        "reference": "SP 800-34 Rev. 1, Section 2.2.7"
+      }
+    },
+    {
+      "name": "use-of-scap-within-security-focused-config-mgmt",
+      "inputs": "How is Security Content Automation Protocol (SCAP) tooling used in the context of a security-focused configuration management program?",
+      "expected_output": "SCAP-enabled tools can be used for maintaining the security of enterprise systems, such as automatically verifying the installation of patches, checking system security configuration settings against an expected baseline, and examining systems for signs of compromise.",
+      "metadata": {
+        "uuid": "c20afd18-8154-4135-a5dc-b7a9e4c3bb83",
+        "question_number": "33",
+        "type": "qa",
+        "reference": "SP 800-128, Section 3.5, Using SCAP"
+      }
+    },
+    {
+      "name": "enterprise-patch-management-technologies",
+      "inputs": "What three patch management technologies are available for enterprise patch management requirements?",
+      "expected_output": "Agent-based patch management, agentless scanning, and passive network monitoring",
+      "metadata": {
+        "uuid": "e5cf8c67-db66-4a51-a38e-a1f479ccff3b",
+        "question_number": "34",
+        "type": "qa",
+        "reference": "SP 800-40 rev 3, Chapter 4"
+      }
+    },
+    {
+      "name": "security-plan-review-cadence",
+      "inputs": "How often should an information systems security plan be reviewed?",
+      "expected_output": "At least annually, and updated if appropriate.",
+      "metadata": {
+        "uuid": "cabd69e6-39df-4d3d-9edf-ce31418a8e5f",
+        "question_number": "35",
+        "type": "qa",
+        "reference": "SP 800-18 Rev. 1, Section 3.16"
       }
     }
   ]
