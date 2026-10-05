@@ -26,13 +26,57 @@ designators:
 
   # fips199
 - designator: "FIPS 199"
+  questions: 3
+  documents:
+  - name: "NIST.FIPS.199.pdf"
+    sha256: "73d19f05f71e30f378050f178aa3943c38790bbae56c07f2b5708c5a1a90242f"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.199.pdf"
+    document_identifier: "FIPS 199"
+
+  # fips200
+- designator: "fips 200"
   questions: 1
   documents:
-    - document_identifier: "FIPS 199"   # override
-      name: "NIST.FIPS.199.pdf"
-      sha256: "73d19f05f71e30f378050f178aa3943c38790bbae56c07f2b5708c5a1a90242f"
-      source_url: "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.199.pdf"
-  notes:
+  - name: "NIST.FIPS.200.pdf"
+    sha256: "107a9b9cdc8eccf37386aec28bbaf2dfaef5cfece17151ceabc3960423243a57"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.200.pdf"
+    document_identifier: "FIPS 200"
+
+  # sp800128
+- designator: "SP 800-128"
+  questions: 1
+  documents:
+  - name: "NIST.SP.800-128.pdf"
+    sha256: "ee97c5be0a5a1c70165bf960c67042c5ed1bcb186aeb592eada60e512ab35a70"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-128.pdf"
+    document_identifier: "NIST SP 800-128"
+
+  # sp800137
+- designator: "SP 800-137"
+  questions: 1
+  documents:
+  - name: "nistspecialpublication800-137.pdf"
+    sha256: "2d1c0bf459f5e1bfd41ceb5eac83bf62e4c34bf08e2e7088b37cb73a11442b98"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-137.pdf"
+    document_identifier: "NIST SP 800-137"
+
+  # sp800137a
+- designator: "SP 800-137A"
+  questions: 1
+  documents:
+  - name: "NIST.SP.800-137A.pdf"
+    sha256: "faf53de596de79151a3bf999ff9c67cce7f394cf41bbbac7dbf58ff6ee6071c3"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-137A.pdf"
+    document_identifier: "NIST SP 800-137A"
+
+  # sp80018r1
+- designator: "SP 800-18 Rev. 1"
+  questions: 1
+  documents:
+    - document_identifier: "NIST SP 800-18 Rev. 1"   # override
+      name: "nistspecialpublication800-18r1.pdf"
+      sha256: "1635870f7cac9c0606cddbf42a7e4d0d8d01c5ab8709d3667821a4cdeaddd506"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-18r1.pdf"
 
   # sp80030r1
 - designator: "NIST SP 800-30 Rev. 1"
@@ -48,15 +92,50 @@ designators:
     sha256: "f214087f0bdb35932a28c16eb93932a33c67a6edfb5e6f1638866bd201c98e04"
     source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-30r1.pdf"
 
+  # sp80034r1
+- designator: "SP 800-34 Rev. 1"
+  questions: 1
+  documents:
+  - name: "nistspecialpublication800-34r1.pdf"
+    sha256: "476f04d4c60b0770c1ac8b2720551972074ce78e936a3e7a535048416111d0df"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-34r1.pdf"
+    document_identifier: "NIST SP 800-34 Rev. 1"
+
+  # sp80037
+- designator: "SP 800-37"
+  questions: 2
+  documents:
+  - name: "NIST.SP.800-37r2.pdf"
+    sha256: "4f75e1136bb905a654f1bcd9eefefb4108f47597276ee5eec0688f6d96f6a01d"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-37r2.pdf"
+    document_identifier: "NIST SP 800-37 Rev. 2"
+
   # sp80039
 - designator: "NIST SP 800-39"
   questions: 1
   documents:
-    - document_identifier: "NIST SP 800-39"   # override
-      name: "nistspecialpublication800-39.pdf"
-      sha256: "cf680760d171fc590396c1d98eef184af96efa971ef9880830cd2912ea1a54a8"
-      source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-39.pdf"
-  notes:
+  - name: "nistspecialpublication800-39.pdf"
+    sha256: "cf680760d171fc590396c1d98eef184af96efa971ef9880830cd2912ea1a54a8"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-39.pdf"
+    document_identifier: "NIST SP 800-39"
+
+  # sp80040r3
+- designator: "SP 800-40 rev 3"
+  questions: 1
+  documents:
+  - name: "NIST.SP.800-40r3.as-of-2020-06-30.pdf"
+    sha256: "5e2d511d3e65c5aaf7d3bfa522d8011a1e95c06332463ac3f9e31a3344436972"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-40r3.pdf"
+    document_identifier: "NIST SP 800-40 Rev. 3"
+
+  # sp80053ar4
+- designator: "SP 800-53A rev. 4"
+  questions: 1
+  documents:
+  - name: "NIST.SP.800-53Ar4.as-of-2020-06-30.pdf"
+    sha256: "e6fa069e8416ae8bf3c5b3465e8da4899db8a13fcf1c8df43e8b02a904de57a8"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53Ar4.pdf"
+    document_identifier: "NIST SP 800-53A Rev. 4"
 
   # sp80053r4
 - designator: "NIST SP 800-53 Rev. 4"
@@ -65,6 +144,15 @@ designators:
   - name: "NIST.SP.800-53r4.as-of-2020-06-30.pdf"
     sha256: "d465fc9b8ebc14188b86d05c2b61aac82ce7b97ca5aab9f65e98f4079b07137a"
     source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r4.pdf"
+
+  # sp80060v1r1
+- designator: "SP 800-60 Vol. 1 Rev. 1"
+  questions: 1
+  documents:
+  - name: "nistspecialpublication800-60v1r1.pdf"
+    sha256: "6f13f57f11697efcba694d0c9935c99168512f737cc76f2c432f248550128460"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-60v1r1.pdf"
+    document_identifier: "NIST SP 800-60 Vol. 1 Rev. 1"
 
   # sp80060v2r1
 - designator: "NIST SP 800-60 Volume II Revision 1"
@@ -87,6 +175,24 @@ designators:
   - name: "NIST.SP.800-61r2.as-of-2020-06-30.pdf"
     sha256: "503510e7026b72bc7c0b0d5701f23168e985d203a230163ea6af3044b790c734"
     source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf"
+
+  # sp800633
+- designator: "SP 800-63-3"
+  questions: 1
+  documents:
+  - name: "NIST.SP.800-63-3.as-of-2020-06-30.pdf"
+    sha256: "67322f7d4e5b9a92b43ebe6c49dcc33c7c20d65826964d4f5227bba6b31d09b3"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63-3.pdf"
+    document_identifier: "NIST SP 800-63-3"
+
+  # sp80063a
+- designator: "SP 800-63A"
+  questions: 1
+  documents:
+  - name: "NIST.SP.800-63a.as-of-2020-06-30.pdf"
+    sha256: "ab1c229fde56d677cb457370d379c592af93201b77d15fc45ad9a82a1a877bdb"
+    source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63a.pdf"
+    document_identifier: "NIST SP 800-63A"
 
   # sp80063b
 - designator: "NIST SP 800-63B"
@@ -123,6 +229,90 @@ candidates:
       source_url: "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.199.pdf"
     matched: []
 
+  # fips 200
+  "fips200":
+    identifier:
+    - document_identifier: "FIPS 200"   # override
+      name: "NIST.FIPS.200.pdf"
+      sha256: "107a9b9cdc8eccf37386aec28bbaf2dfaef5cfece17151ceabc3960423243a57"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.200.pdf"
+    matched: []
+    related:
+    - document_identifier: "NIST SP 800-40 Rev. 3"   # override
+      name: "NIST.SP.800-40r3.as-of-2020-06-30.pdf"
+      sha256: "5e2d511d3e65c5aaf7d3bfa522d8011a1e95c06332463ac3f9e31a3344436972"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-40r3.pdf"
+    - document_identifier: "NIST SP 800-53A Rev. 4"   # override
+      name: "NIST.SP.800-53Ar4.as-of-2020-06-30.pdf"
+      sha256: "e6fa069e8416ae8bf3c5b3465e8da4899db8a13fcf1c8df43e8b02a904de57a8"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53Ar4.pdf"
+    - document_identifier: "NIST SP 800-53 Rev. 4"   # override
+      name: "NIST.SP.800-53r4.as-of-2020-06-30.pdf"
+      sha256: "d465fc9b8ebc14188b86d05c2b61aac82ce7b97ca5aab9f65e98f4079b07137a"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r4.pdf"
+    - document_identifier: "NIST SP 800-61 Rev. 2"   # override
+      name: "NIST.SP.800-61r2.as-of-2020-06-30.pdf"
+      sha256: "503510e7026b72bc7c0b0d5701f23168e985d203a230163ea6af3044b790c734"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf"
+    - document_identifier: "NIST SP 800-63-3"   # override
+      name: "NIST.SP.800-63-3.as-of-2020-06-30.pdf"
+      sha256: "67322f7d4e5b9a92b43ebe6c49dcc33c7c20d65826964d4f5227bba6b31d09b3"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63-3.pdf"
+    - document_identifier: "NIST SP 800-63A"   # override
+      name: "NIST.SP.800-63a.as-of-2020-06-30.pdf"
+      sha256: "ab1c229fde56d677cb457370d379c592af93201b77d15fc45ad9a82a1a877bdb"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63a.pdf"
+    - document_identifier: "NIST SP 800-63B"   # override
+      name: "NIST.SP.800-63b.as-of-2020-06-30.pdf"
+      sha256: "9a9e8629936778e591f567b2b6599da4585c7ad2296d2b1fcd324d02c9b23961"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63b.pdf"
+
+  # SP 800-128
+  "sp800128":
+    identifier:
+    - document_identifier: "NIST SP 800-128"   # override
+      name: "NIST.SP.800-128.pdf"
+      sha256: "ee97c5be0a5a1c70165bf960c67042c5ed1bcb186aeb592eada60e512ab35a70"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-128.pdf"
+    matched: []
+
+  # SP 800-137
+  "sp800137":
+    identifier:
+    - document_identifier: "NIST SP 800-137"   # override
+      name: "nistspecialpublication800-137.pdf"
+      sha256: "2d1c0bf459f5e1bfd41ceb5eac83bf62e4c34bf08e2e7088b37cb73a11442b98"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-137.pdf"
+    identifier_related:
+    - document_identifier: "NIST SP 800-137A"   # override; sub-publication
+      name: "NIST.SP.800-137A.pdf"
+      sha256: "faf53de596de79151a3bf999ff9c67cce7f394cf41bbbac7dbf58ff6ee6071c3"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-137A.pdf"
+    matched: []
+
+  # SP 800-137A
+  "sp800137a":
+    identifier:
+    - document_identifier: "NIST SP 800-137A"   # override
+      name: "NIST.SP.800-137A.pdf"
+      sha256: "faf53de596de79151a3bf999ff9c67cce7f394cf41bbbac7dbf58ff6ee6071c3"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-137A.pdf"
+    matched: []
+    related:
+    - document_identifier: "NIST SP 800-137"   # override
+      name: "nistspecialpublication800-137.pdf"
+      sha256: "2d1c0bf459f5e1bfd41ceb5eac83bf62e4c34bf08e2e7088b37cb73a11442b98"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-137.pdf"
+
+  # SP 800-18 Rev. 1
+  "sp80018r1":
+    identifier:
+    - document_identifier: "NIST SP 800-18 Rev. 1"   # override
+      name: "nistspecialpublication800-18r1.pdf"
+      sha256: "1635870f7cac9c0606cddbf42a7e4d0d8d01c5ab8709d3667821a4cdeaddd506"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-18r1.pdf"
+    matched: []
+
   # NIST SP 800-30 Rev. 1, NIST Special Publication 800-30 Revision 1
   "sp80030r1":
     identifier:
@@ -132,6 +322,74 @@ candidates:
       source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-30r1.pdf"
     matched: []
 
+  # SP 800-34 Rev. 1
+  "sp80034r1":
+    identifier:
+    - document_identifier: "NIST SP 800-34 Rev. 1"   # override
+      name: "nistspecialpublication800-34r1.pdf"
+      sha256: "476f04d4c60b0770c1ac8b2720551972074ce78e936a3e7a535048416111d0df"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-34r1.pdf"
+    matched: []
+
+  # SP 800-37
+  "sp80037":
+    identifier: []
+    identifier_related:
+    - document_identifier: "NIST SP 800-37 Rev. 2"   # override; revision
+      name: "NIST.SP.800-37r2.pdf"
+      sha256: "4f75e1136bb905a654f1bcd9eefefb4108f47597276ee5eec0688f6d96f6a01d"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-37r2.pdf"
+    matched: []
+    same_series:
+    - document_identifier: "FIPS 199"   # override
+      name: "NIST.FIPS.199.pdf"
+      sha256: "73d19f05f71e30f378050f178aa3943c38790bbae56c07f2b5708c5a1a90242f"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.199.pdf"
+    - document_identifier: "FIPS 200"   # override
+      name: "NIST.FIPS.200.pdf"
+      sha256: "107a9b9cdc8eccf37386aec28bbaf2dfaef5cfece17151ceabc3960423243a57"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.200.pdf"
+    - document_identifier: "NIST SP 800-128"   # override
+      name: "NIST.SP.800-128.pdf"
+      sha256: "ee97c5be0a5a1c70165bf960c67042c5ed1bcb186aeb592eada60e512ab35a70"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-128.pdf"
+    - document_identifier: "NIST SP 800-137A"   # override
+      name: "NIST.SP.800-137A.pdf"
+      sha256: "faf53de596de79151a3bf999ff9c67cce7f394cf41bbbac7dbf58ff6ee6071c3"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-137A.pdf"
+    - document_identifier: "NIST SP 800-37 Rev. 2"   # override
+      name: "NIST.SP.800-37r2.pdf"
+      sha256: "4f75e1136bb905a654f1bcd9eefefb4108f47597276ee5eec0688f6d96f6a01d"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-37r2.pdf"
+    - document_identifier: "NIST SP 800-40 Rev. 3"   # override
+      name: "NIST.SP.800-40r3.as-of-2020-06-30.pdf"
+      sha256: "5e2d511d3e65c5aaf7d3bfa522d8011a1e95c06332463ac3f9e31a3344436972"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-40r3.pdf"
+    - document_identifier: "NIST SP 800-53A Rev. 4"   # override
+      name: "NIST.SP.800-53Ar4.as-of-2020-06-30.pdf"
+      sha256: "e6fa069e8416ae8bf3c5b3465e8da4899db8a13fcf1c8df43e8b02a904de57a8"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53Ar4.pdf"
+    - document_identifier: "NIST SP 800-53 Rev. 4"   # override
+      name: "NIST.SP.800-53r4.as-of-2020-06-30.pdf"
+      sha256: "d465fc9b8ebc14188b86d05c2b61aac82ce7b97ca5aab9f65e98f4079b07137a"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r4.pdf"
+    - document_identifier: "NIST SP 800-61 Rev. 2"   # override
+      name: "NIST.SP.800-61r2.as-of-2020-06-30.pdf"
+      sha256: "503510e7026b72bc7c0b0d5701f23168e985d203a230163ea6af3044b790c734"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf"
+    - document_identifier: "NIST SP 800-63-3"   # override
+      name: "NIST.SP.800-63-3.as-of-2020-06-30.pdf"
+      sha256: "67322f7d4e5b9a92b43ebe6c49dcc33c7c20d65826964d4f5227bba6b31d09b3"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63-3.pdf"
+    - document_identifier: "NIST SP 800-63A"   # override
+      name: "NIST.SP.800-63a.as-of-2020-06-30.pdf"
+      sha256: "ab1c229fde56d677cb457370d379c592af93201b77d15fc45ad9a82a1a877bdb"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63a.pdf"
+    - document_identifier: "NIST SP 800-63B"   # override
+      name: "NIST.SP.800-63b.as-of-2020-06-30.pdf"
+      sha256: "9a9e8629936778e591f567b2b6599da4585c7ad2296d2b1fcd324d02c9b23961"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63b.pdf"
+
   # NIST SP 800-39
   "sp80039":
     identifier:
@@ -140,6 +398,29 @@ candidates:
       sha256: "cf680760d171fc590396c1d98eef184af96efa971ef9880830cd2912ea1a54a8"
       source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-39.pdf"
     matched: []
+
+  # SP 800-40 rev 3
+  "sp80040r3":
+    identifier:
+    - document_identifier: "NIST SP 800-40 Rev. 3"   # override
+      name: "NIST.SP.800-40r3.as-of-2020-06-30.pdf"
+      sha256: "5e2d511d3e65c5aaf7d3bfa522d8011a1e95c06332463ac3f9e31a3344436972"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-40r3.pdf"
+    matched: []
+
+  # SP 800-53A rev. 4
+  "sp80053ar4":
+    identifier:
+    - document_identifier: "NIST SP 800-53A Rev. 4"   # override
+      name: "NIST.SP.800-53Ar4.as-of-2020-06-30.pdf"
+      sha256: "e6fa069e8416ae8bf3c5b3465e8da4899db8a13fcf1c8df43e8b02a904de57a8"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53Ar4.pdf"
+    matched: []
+    related:
+    - document_identifier: "NIST SP 800-53 Rev. 4"   # override
+      name: "NIST.SP.800-53r4.as-of-2020-06-30.pdf"
+      sha256: "d465fc9b8ebc14188b86d05c2b61aac82ce7b97ca5aab9f65e98f4079b07137a"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r4.pdf"
 
   # NIST SP 800-53 Rev. 4
   "sp80053r4":
@@ -154,6 +435,15 @@ candidates:
       name: "NIST.SP.800-53Ar4.as-of-2020-06-30.pdf"
       sha256: "e6fa069e8416ae8bf3c5b3465e8da4899db8a13fcf1c8df43e8b02a904de57a8"
       source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53Ar4.pdf"
+
+  # SP 800-60 Vol. 1 Rev. 1
+  "sp80060v1r1":
+    identifier:
+    - document_identifier: "NIST SP 800-60 Vol. 1 Rev. 1"   # override
+      name: "nistspecialpublication800-60v1r1.pdf"
+      sha256: "6f13f57f11697efcba694d0c9935c99168512f737cc76f2c432f248550128460"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-60v1r1.pdf"
+    matched: []
 
   # NIST SP 800-60 Volume II Revision 1
   "sp80060v2r1":
@@ -172,6 +462,29 @@ candidates:
       sha256: "503510e7026b72bc7c0b0d5701f23168e985d203a230163ea6af3044b790c734"
       source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf"
     matched: []
+
+  # SP 800-63-3
+  "sp800633":
+    identifier:
+    - document_identifier: "NIST SP 800-63-3"   # override
+      name: "NIST.SP.800-63-3.as-of-2020-06-30.pdf"
+      sha256: "67322f7d4e5b9a92b43ebe6c49dcc33c7c20d65826964d4f5227bba6b31d09b3"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63-3.pdf"
+    matched: []
+
+  # SP 800-63A
+  "sp80063a":
+    identifier:
+    - document_identifier: "NIST SP 800-63A"   # override
+      name: "NIST.SP.800-63a.as-of-2020-06-30.pdf"
+      sha256: "ab1c229fde56d677cb457370d379c592af93201b77d15fc45ad9a82a1a877bdb"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63a.pdf"
+    matched: []
+    related:
+    - document_identifier: "NIST SP 800-63B"   # override
+      name: "NIST.SP.800-63b.as-of-2020-06-30.pdf"
+      sha256: "9a9e8629936778e591f567b2b6599da4585c7ad2296d2b1fcd324d02c9b23961"
+      source_url: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63b.pdf"
 
   # NIST SP 800-63B
   "sp80063b":
@@ -192,6 +505,7 @@ candidates:
 # `reference` here, then takes that designator's `documents:`.
 apply_keys:
   "FIPS 199, Section 3": "FIPS 199"
+  "fips 200, appendix a": "fips 200"
   "NIST SP 800-30 Rev. 1, Chapter 3": "NIST SP 800-30 Rev. 1"
   "NIST SP 800-39, Section 2.2": "NIST SP 800-39"
   "NIST SP 800-53 Rev. 4, Control AC-2": "NIST SP 800-53 Rev. 4"
@@ -207,3 +521,15 @@ apply_keys:
   "NIST SP 800-63B, Section 5.1.1.2": "NIST SP 800-63B"
   "NIST SP 800-63B, Section 5.1.3.3": "NIST SP 800-63B"
   "NIST Special Publication 800-30 Revision 1, Section 2.3.1": "NIST Special Publication 800-30 Revision 1"
+  "SP 800-128, Section 3.5, Using SCAP": "SP 800-128"
+  "SP 800-137, Section 2.3": "SP 800-137"
+  "SP 800-137A, Section 2.2.10": "SP 800-137A"
+  "SP 800-18 Rev. 1, Section 3.16": "SP 800-18 Rev. 1"
+  "SP 800-34 Rev. 1, Section 2.2.7": "SP 800-34 Rev. 1"
+  "SP 800-37, Chapter 3": "SP 800-37"
+  "SP 800-37, Section 3.7": "SP 800-37"
+  "SP 800-40 rev 3, Chapter 4": "SP 800-40 rev 3"
+  "SP 800-53A rev. 4, Section 2.4": "SP 800-53A rev. 4"
+  "SP 800-60 Vol. 1 Rev. 1, Section 4.1": "SP 800-60 Vol. 1 Rev. 1"
+  "SP 800-63-3, Ch. 4": "SP 800-63-3"
+  "SP 800-63A, Section 4.5": "SP 800-63A"
