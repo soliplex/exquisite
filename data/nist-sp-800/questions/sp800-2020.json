@@ -321,8 +321,8 @@
       }
     },
     {
-      "name": "enterprise-patch-managment-technologies",
-      "inputs": "What three patch managment technologies are available for enterprise patch management requirements?",
+      "name": "enterprise-patch-management-technologies",
+      "inputs": "What three patch management technologies are available for enterprise patch management requirements?",
       "expected_output": "Agent-based patch management, agentless scanning, and passive network monitoring",
       "metadata": {
         "uuid": "e5cf8c67-db66-4a51-a38e-a1f479ccff3b",
@@ -334,7 +334,7 @@
     {
       "name": "security-plan-review-cadence",
       "inputs": "How often should an information systems security plan be reviewed?",
-      "expected_output": "As least annually, and updated if appropriate.",
+      "expected_output": "At least annually, and updated if appropriate.",
       "metadata": {
         "uuid": "cabd69e6-39df-4d3d-9edf-ce31418a8e5f",
         "question_number": "35",
