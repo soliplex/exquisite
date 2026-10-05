@@ -20,7 +20,7 @@
         "uuid": "9727865e-b3a5-5474-9021-e234c1c8e27e",
         "question_number": "2",
         "type": "qa",
-        "reference": "NIST SP 800-30, Section 2.1"
+        "reference": "NIST SP 800-39, Section 2.2"
       }
     },
     {
@@ -163,7 +163,7 @@
         "uuid": "33e57977-c22b-5df6-a221-8e91012fb3d5",
         "question_number": "17",
         "type": "qa",
-        "reference": "NIST SP 800-60 Vol. 1 Rev. 1, Section 3.1.1"
+        "reference": "FIPS 199, Section 3"
       }
     },
     {
