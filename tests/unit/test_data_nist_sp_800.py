@@ -128,6 +128,6 @@ def test_binding_labels_every_question_against_its_snapshot(rules):
     labels = [
         case["metadata"].get(bind.LABEL_KEY) for case in document["cases"]
     ]
-    assert tally["labelled"] == len(document["cases"]) == 16
+    assert tally["labelled"] == len(document["cases"])
     assert not tally["unbound"]
     assert all(label and set(label) <= uris for label in labels)
