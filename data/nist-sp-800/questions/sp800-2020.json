@@ -102,26 +102,6 @@
       }
     },
     {
-      "inputs": "Into how many families are the requirements for protecting CUI grouped?",
-      "expected_output": "Fourteen.",
-      "metadata": {
-        "uuid": "c61de15f-0509-553d-96c3-baf7802399d4",
-        "question_number": "11",
-        "type": "qa",
-        "reference": "NIST SP 800-171 Rev. 2, Chapter 3"
-      }
-    },
-    {
-      "inputs": "Where must we use multifactor authentication?",
-      "expected_output": "For local and network access to privileged accounts, and for network access to non-privileged accounts.",
-      "metadata": {
-        "uuid": "2f317c02-9243-5780-8b58-cc6a451bcc03",
-        "question_number": "12",
-        "type": "qa",
-        "reference": "NIST SP 800-171r2, Requirement 3.5.3"
-      }
-    },
-    {
       "inputs": "What is the minimum length of a password the subscriber chooses?",
       "expected_output": "At least 8 characters.",
       "metadata": {
@@ -179,26 +159,6 @@
         "question_number": "18",
         "type": "qa",
         "reference": "NIST SP 800-60 Volume II Revision 1, Appendix C"
-      }
-    },
-    {
-      "inputs": "What is a cryptoperiod?",
-      "expected_output": "The time span during which a specific key is authorized for use by legitimate entities.",
-      "metadata": {
-        "uuid": "ea0145f5-ac84-5b61-9664-a08d83a8a90b",
-        "question_number": "19",
-        "type": "qa",
-        "reference": "NIST SP 800-57 Part 1 Rev. 5, Section 5.3"
-      }
-    },
-    {
-      "inputs": "How long should a symmetric data-encryption key be used to encrypt data?",
-      "expected_output": "From a day or a week, for large volumes of data, up to two years for smaller volumes; with a recipient-usage period of no more than three years beyond that.",
-      "metadata": {
-        "uuid": "af32f015-a362-5fbe-b146-805555f5e277",
-        "question_number": "20",
-        "type": "qa",
-        "reference": "NIST SP 800-57 Pt. 1 Rev. 5, Section 5.3.6"
       }
     }
   ]

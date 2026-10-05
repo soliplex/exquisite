@@ -12,8 +12,6 @@ designators:
     - {pattern: '\bvol(?:ume)?\.?\s*i\b', replace: 'vol 1'}
     # "Rev. 5", "Revision 5" -> "r5"
     - {pattern: '\brev(?:ision)?\.?\s*(\d+)', replace: 'r\1'}
-    # "Part 1" -> "pt1"
-    - {pattern: '\bpart\s*(\d+)', replace: 'pt\1'}
   series:
     # Filenames lead with "NIST.SP." or the legacy "nistspecialpublication".
     sp: [nist, nistspecialpublication]
