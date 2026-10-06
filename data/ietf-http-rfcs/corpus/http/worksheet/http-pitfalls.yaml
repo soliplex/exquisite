@@ -1,0 +1,521 @@
+# Map document designators (as cited in the question set) to document URIs
+# (as stored in the `http-2022` corpus).  Fill in `documents:` on each entry.
+#
+# Entries are grouped by a "collapsed key" -- the designator with
+# "Vol 3" read as "v3", "Supplement" as "supp", and all
+# punctuation and spacing removed.  The comment above each group is that key;
+# `candidates:` below is keyed by the same thing; jump down and back.
+# Designators sharing a key are spelling variants of what is probably one
+# document; if so, give them the same `documents:`.  Nothing needs merging.
+# An `also cited as` note links two groups with different keys:  one group's
+# filenames match a document whose trusted identifier names the other.  They
+# are probably one publication too.
+# A `provisional:` line marks an answer made from a trusted identifier match;
+# check it, then delete the line.  `bind` refuses the worksheet until then.
+version: 1
+question_set: questions/http-pitfalls.json
+database: http-2022
+generated: 2026-10-02
+corpus_documents: 7   # at generation; a mismatch means recheck
+substrate: unknown   # embedder/chunking digest of the ingestion
+rules: 68067e4dd7b6   # normalization v1, built-ins + caller rules
+validated_by:      # FILL ME IN
+validated_on:      # FILL ME IN
+
+designators:
+
+  # draftietfhttpbissemantics
+- designator: "draft-ietf-httpbis-semantics"
+  questions: 1
+  documents:
+  - name: "draft-ietf-httpbis-semantics-19.txt"
+    sha256: "3cf7c5a6dbce4d26629b0bea455ea0beeba1beaeef99af952223ad5f67f97b9b"
+    source_url: "https://www.ietf.org/archive/id/draft-ietf-httpbis-semantics-19.txt"
+  notes: "no revision cited; -19 is the last, and the section is unchanged from it into RFC 9110"
+
+  # draftietfhttpbissemantics19
+- designator: "draft-ietf-httpbis-semantics-19"
+  questions: 1
+  documents:
+  - name: "draft-ietf-httpbis-semantics-19.txt"
+    sha256: "3cf7c5a6dbce4d26629b0bea455ea0beeba1beaeef99af952223ad5f67f97b9b"
+    source_url: "https://www.ietf.org/archive/id/draft-ietf-httpbis-semantics-19.txt"
+  notes: "the final draft; published as RFC 9110"
+
+  # rfc1945
+- designator: "RFC 1945"
+  questions: 1
+  documents:
+  - name: "rfc1945.txt"
+    sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+    source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+
+  # rfc2068
+- designator: "RFC 2068"
+  questions: 1
+  documents:
+  - name: "rfc2068.txt"
+    sha256: "d6c4e471389f2d309ab1f90881576542c742f95b115336a346447d052e0477cf"
+    source_url: "https://www.rfc-editor.org/rfc/rfc2068.txt"
+  notes: "only in the http-2015 ingestion; obsoleted by RFC 2616"
+
+  # rfc2616
+- designator: "RFC 2616"
+  questions: 3
+  documents:
+  - name: "rfc2616.txt"
+    sha256: "10211d2885196b97b1c78e1672f3f68ae97c294596ef2b7fd890cbd30a3427bf"
+    source_url: "https://www.rfc-editor.org/rfc/rfc2616.txt"
+  notes: "only in the http-2015 ingestion; obsoleted by RFC 7230-7235, and in turn by RFC 9110-9112; which successor holds a section depends on the section"
+
+  # rfc2818
+- designator: "RFC 2818"
+  questions: 1
+  documents:
+  - name: "rfc2818.txt"
+    sha256: "4ef02c2b9185fe7b0af4c8777be460f1e156bc57313b1290c9097f83b9f43916"
+    source_url: "https://www.rfc-editor.org/rfc/rfc2818.txt"
+  notes: "only in the http-2015 ingestion; obsoleted by RFC 9110, which absorbed it"
+
+  # rfc7230
+- designator: "RFC 7230"
+  questions: 1
+  documents:
+  - name: "rfc7230.txt"
+    sha256: "c7fdc8bebdf1f8195f731592c47f5ea822b489436fd905b01b55ef531fca4120"
+    source_url: "https://www.rfc-editor.org/rfc/rfc7230.txt"
+  notes: "only in the http-2015 ingestion; obsoleted by RFC 9110 and RFC 9112, which split it"
+
+  # rfc7231
+- designator: "RFC 7231"
+  questions: 2
+  documents:
+  - name: "rfc7231.txt"
+    sha256: "a83d026937f6f7929a0e53f8a9bfec4104285f0f89d6dbabd3927c4208a715b2"
+    source_url: "https://www.rfc-editor.org/rfc/rfc7231.txt"
+  notes: "only in the http-2015 ingestion; obsoleted by RFC 9110"
+
+  # rfc7234
+- designator: "RFC 7234"
+  questions: 1
+  documents:
+  - name: "rfc7234.txt"
+    sha256: "1d084238ae6692d1e3322fa0850dbb9596812332d92b76d9a815c5ed9b600dea"
+    source_url: "https://www.rfc-editor.org/rfc/rfc7234.txt"
+  notes: "only in the http-2015 ingestion; obsoleted by RFC 9111"
+
+  # rfc7540
+- designator: "RFC 7540"
+  questions: 1
+  documents:
+  - name: "rfc7540.txt"
+    sha256: "6a67e8d7fdfa7b5272fc55f8fba62b266f932031c7f39e29c52f83e129bc2967"
+    source_url: "https://www.rfc-editor.org/rfc/rfc7540.txt"
+  notes: "only in the http-2015 ingestion; obsoleted by RFC 9113, where its Section 3.5 became Section 3.4"
+
+  # rfc9110
+- designator: "RFC 9110"
+  questions: 2
+  documents:
+  - name: "rfc9110.txt"
+    sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+    source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+- designator: "RFC9110"
+  questions: 1
+  documents:
+  - name: "rfc9110.txt"
+    sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+    source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+- designator: "STD 97"
+  questions: 1
+  documents:
+  - name: "rfc9110.txt"
+    sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+    source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+  notes: "STD 97 names RFC 9110"
+
+  # rfc9111
+- designator: "RFC 9111"
+  questions: 1
+  documents:
+  - name: "rfc9111.txt"
+    sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+    source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+- designator: "STD 98"
+  questions: 1
+  documents:
+  - name: "rfc9111.txt"
+    sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+    source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+  notes: "STD 98 names RFC 9111"
+
+  # rfc9112
+- designator: "RFC 9112"
+  questions: 1
+  documents:
+  - name: "rfc9112.txt"
+    sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+    source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+- designator: "STD 99"
+  questions: 1
+  documents:
+  - name: "rfc9112.txt"
+    sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+    source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+  notes: "STD 99 names RFC 9112"
+
+  # rfc9113
+- designator: "RFC 9113"
+  questions: 2
+  documents:
+  - name: "rfc9113.txt"
+    sha256: "a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de"
+    source_url: "https://www.rfc-editor.org/rfc/rfc9113.txt"
+
+  # rfc9114
+- designator: "RFC 9114"
+  questions: 1
+  documents:
+  - name: "rfc9114.txt"
+    sha256: "6b84555c88eeebcf5d2b2e1d9d7b58630abc97ab877b2cf62dee4cd635db34e4"
+    source_url: "https://www.rfc-editor.org/rfc/rfc9114.txt"
+
+# ---------------------------------------------------------------------------
+# Generated below this line -- do not edit.
+# ---------------------------------------------------------------------------
+
+# Documents in `http-2022` resembling each designator, keyed by the same
+# collapsed key as above.  ADVISORY ONLY -- nothing here is an answer, and
+# lists are alphabetical, not ranked, deliberately:  the closest-looking
+# match is often a notice amending the publication, not the publication.
+# `identifier` = the document's own publication identifier
+# collapses to this key; each entry leads with it, and with where it came
+# from and how sure that source was.  `identifier_related` = the identifier
+# extends this key (a supplement, volume or sub-publication):
+# never the answer by itself.  `matched` = name matches and the digit run
+# is identical; `related` = name or digits overlap but differ (other
+# volumes, parts, addenda); `same_series` appears only when nothing
+# else did.
+candidates:
+
+  # draft-ietf-httpbis-semantics
+  "draftietfhttpbissemantics":
+    identifier: []
+    identifier_related:
+    - document_identifier: "draft-ietf-httpbis-semantics-19"   # override; draft revision
+      name: "draft-ietf-httpbis-semantics-19.txt"
+      sha256: "3cf7c5a6dbce4d26629b0bea455ea0beeba1beaeef99af952223ad5f67f97b9b"
+      source_url: "https://www.ietf.org/archive/id/draft-ietf-httpbis-semantics-19.txt"
+    matched: []
+    same_series:
+    - document_identifier: "draft-ietf-httpbis-semantics-19"   # override
+      name: "draft-ietf-httpbis-semantics-19.txt"
+      sha256: "3cf7c5a6dbce4d26629b0bea455ea0beeba1beaeef99af952223ad5f67f97b9b"
+      source_url: "https://www.ietf.org/archive/id/draft-ietf-httpbis-semantics-19.txt"
+
+  # draft-ietf-httpbis-semantics-19
+  "draftietfhttpbissemantics19":
+    identifier:
+    - document_identifier: "draft-ietf-httpbis-semantics-19"   # override
+      name: "draft-ietf-httpbis-semantics-19.txt"
+      sha256: "3cf7c5a6dbce4d26629b0bea455ea0beeba1beaeef99af952223ad5f67f97b9b"
+      source_url: "https://www.ietf.org/archive/id/draft-ietf-httpbis-semantics-19.txt"
+    matched: []
+    related:
+    - document_identifier: "RFC 1945"   # override
+      name: "rfc1945.txt"
+      sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+      source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+
+  # RFC 1945
+  "rfc1945":
+    identifier:
+    - document_identifier: "RFC 1945"   # override
+      name: "rfc1945.txt"
+      sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+      source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+    matched: []
+
+  # RFC 2068
+  "rfc2068":
+    identifier: []
+    matched: []
+    same_series:
+    - document_identifier: "RFC 1945"   # override
+      name: "rfc1945.txt"
+      sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+      source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+    - document_identifier: "RFC 9110"   # override
+      name: "rfc9110.txt"
+      sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+    - document_identifier: "RFC 9111"   # override
+      name: "rfc9111.txt"
+      sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+    - document_identifier: "RFC 9112"   # override
+      name: "rfc9112.txt"
+      sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+    - document_identifier: "RFC 9113"   # override
+      name: "rfc9113.txt"
+      sha256: "a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9113.txt"
+    - document_identifier: "RFC 9114"   # override
+      name: "rfc9114.txt"
+      sha256: "6b84555c88eeebcf5d2b2e1d9d7b58630abc97ab877b2cf62dee4cd635db34e4"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9114.txt"
+
+  # RFC 2616
+  "rfc2616":
+    identifier: []
+    matched: []
+    same_series:
+    - document_identifier: "RFC 1945"   # override
+      name: "rfc1945.txt"
+      sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+      source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+    - document_identifier: "RFC 9110"   # override
+      name: "rfc9110.txt"
+      sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+    - document_identifier: "RFC 9111"   # override
+      name: "rfc9111.txt"
+      sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+    - document_identifier: "RFC 9112"   # override
+      name: "rfc9112.txt"
+      sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+    - document_identifier: "RFC 9113"   # override
+      name: "rfc9113.txt"
+      sha256: "a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9113.txt"
+    - document_identifier: "RFC 9114"   # override
+      name: "rfc9114.txt"
+      sha256: "6b84555c88eeebcf5d2b2e1d9d7b58630abc97ab877b2cf62dee4cd635db34e4"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9114.txt"
+
+  # RFC 2818
+  "rfc2818":
+    identifier: []
+    matched: []
+    same_series:
+    - document_identifier: "RFC 1945"   # override
+      name: "rfc1945.txt"
+      sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+      source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+    - document_identifier: "RFC 9110"   # override
+      name: "rfc9110.txt"
+      sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+    - document_identifier: "RFC 9111"   # override
+      name: "rfc9111.txt"
+      sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+    - document_identifier: "RFC 9112"   # override
+      name: "rfc9112.txt"
+      sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+    - document_identifier: "RFC 9113"   # override
+      name: "rfc9113.txt"
+      sha256: "a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9113.txt"
+    - document_identifier: "RFC 9114"   # override
+      name: "rfc9114.txt"
+      sha256: "6b84555c88eeebcf5d2b2e1d9d7b58630abc97ab877b2cf62dee4cd635db34e4"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9114.txt"
+
+  # RFC 7230
+  "rfc7230":
+    identifier: []
+    matched: []
+    same_series:
+    - document_identifier: "RFC 1945"   # override
+      name: "rfc1945.txt"
+      sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+      source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+    - document_identifier: "RFC 9110"   # override
+      name: "rfc9110.txt"
+      sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+    - document_identifier: "RFC 9111"   # override
+      name: "rfc9111.txt"
+      sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+    - document_identifier: "RFC 9112"   # override
+      name: "rfc9112.txt"
+      sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+    - document_identifier: "RFC 9113"   # override
+      name: "rfc9113.txt"
+      sha256: "a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9113.txt"
+    - document_identifier: "RFC 9114"   # override
+      name: "rfc9114.txt"
+      sha256: "6b84555c88eeebcf5d2b2e1d9d7b58630abc97ab877b2cf62dee4cd635db34e4"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9114.txt"
+
+  # RFC 7231
+  "rfc7231":
+    identifier: []
+    matched: []
+    same_series:
+    - document_identifier: "RFC 1945"   # override
+      name: "rfc1945.txt"
+      sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+      source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+    - document_identifier: "RFC 9110"   # override
+      name: "rfc9110.txt"
+      sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+    - document_identifier: "RFC 9111"   # override
+      name: "rfc9111.txt"
+      sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+    - document_identifier: "RFC 9112"   # override
+      name: "rfc9112.txt"
+      sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+    - document_identifier: "RFC 9113"   # override
+      name: "rfc9113.txt"
+      sha256: "a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9113.txt"
+    - document_identifier: "RFC 9114"   # override
+      name: "rfc9114.txt"
+      sha256: "6b84555c88eeebcf5d2b2e1d9d7b58630abc97ab877b2cf62dee4cd635db34e4"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9114.txt"
+
+  # RFC 7234
+  "rfc7234":
+    identifier: []
+    matched: []
+    same_series:
+    - document_identifier: "RFC 1945"   # override
+      name: "rfc1945.txt"
+      sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+      source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+    - document_identifier: "RFC 9110"   # override
+      name: "rfc9110.txt"
+      sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+    - document_identifier: "RFC 9111"   # override
+      name: "rfc9111.txt"
+      sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+    - document_identifier: "RFC 9112"   # override
+      name: "rfc9112.txt"
+      sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+    - document_identifier: "RFC 9113"   # override
+      name: "rfc9113.txt"
+      sha256: "a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9113.txt"
+    - document_identifier: "RFC 9114"   # override
+      name: "rfc9114.txt"
+      sha256: "6b84555c88eeebcf5d2b2e1d9d7b58630abc97ab877b2cf62dee4cd635db34e4"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9114.txt"
+
+  # RFC 7540
+  "rfc7540":
+    identifier: []
+    matched: []
+    same_series:
+    - document_identifier: "RFC 1945"   # override
+      name: "rfc1945.txt"
+      sha256: "a853054a35d956b2885698566b376505406c756c3b318c6bef04dbd900a27fce"
+      source_url: "https://www.rfc-editor.org/rfc/rfc1945.txt"
+    - document_identifier: "RFC 9110"   # override
+      name: "rfc9110.txt"
+      sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+    - document_identifier: "RFC 9111"   # override
+      name: "rfc9111.txt"
+      sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+    - document_identifier: "RFC 9112"   # override
+      name: "rfc9112.txt"
+      sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+    - document_identifier: "RFC 9113"   # override
+      name: "rfc9113.txt"
+      sha256: "a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9113.txt"
+    - document_identifier: "RFC 9114"   # override
+      name: "rfc9114.txt"
+      sha256: "6b84555c88eeebcf5d2b2e1d9d7b58630abc97ab877b2cf62dee4cd635db34e4"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9114.txt"
+
+  # RFC 9110, RFC9110, STD 97
+  "rfc9110":
+    identifier:
+    - document_identifier: "RFC 9110"   # override
+      name: "rfc9110.txt"
+      sha256: "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9110.txt"
+    matched: []
+
+  # RFC 9111, STD 98
+  "rfc9111":
+    identifier:
+    - document_identifier: "RFC 9111"   # override
+      name: "rfc9111.txt"
+      sha256: "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9111.txt"
+    matched: []
+
+  # RFC 9112, STD 99
+  "rfc9112":
+    identifier:
+    - document_identifier: "RFC 9112"   # override
+      name: "rfc9112.txt"
+      sha256: "e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9112.txt"
+    matched: []
+
+  # RFC 9113
+  "rfc9113":
+    identifier:
+    - document_identifier: "RFC 9113"   # override
+      name: "rfc9113.txt"
+      sha256: "a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9113.txt"
+    matched: []
+
+  # RFC 9114
+  "rfc9114":
+    identifier:
+    - document_identifier: "RFC 9114"   # override
+      name: "rfc9114.txt"
+      sha256: "6b84555c88eeebcf5d2b2e1d9d7b58630abc97ab877b2cf62dee4cd635db34e4"
+      source_url: "https://www.rfc-editor.org/rfc/rfc9114.txt"
+    matched: []
+
+# Every distinct `metadata.reference` string, mapped to the designator above
+# that covers it.  This is the apply key:  a script looks up a case's verbatim
+# `reference` here, then takes that designator's `documents:`.
+apply_keys:
+  "draft-ietf-httpbis-semantics, Section 9.2.2": "draft-ietf-httpbis-semantics"
+  "draft-ietf-httpbis-semantics-19, Section 9.2.1": "draft-ietf-httpbis-semantics-19"
+  "RFC 1945, Section 8": "RFC 1945"
+  "RFC 2068, Section 10.4.5": "RFC 2068"
+  "RFC 2616, Section 10.4.5": "RFC 2616"
+  "RFC 2616, Section 14.9": "RFC 2616"
+  "RFC 2616, Section 8.1.2": "RFC 2616"
+  "RFC 2818, Section 2.3": "RFC 2818"
+  "RFC 7230, Section 6.3": "RFC 7230"
+  "RFC 7231, Section 4.2.1": "RFC 7231"
+  "RFC 7231, Section 6.5.4": "RFC 7231"
+  "RFC 7234, Section 5.2": "RFC 7234"
+  "RFC 7540, Section 3.5": "RFC 7540"
+  "RFC 9110, Section 4.2.2": "RFC 9110"
+  "RFC 9110, Section 9.2.1": "RFC 9110"
+  "RFC 9111, Section 5.2": "RFC 9111"
+  "RFC 9112, Section 9.3": "RFC 9112"
+  "RFC 9113, Section 3.1": "RFC 9113"
+  "RFC 9113, Section 3.4": "RFC 9113"
+  "RFC 9114, Section 3.1": "RFC 9114"
+  "RFC9110 Section 15.5.5": "RFC9110"
+  "STD 97, Section 9.2.2": "STD 97"
+  "STD 98, Section 5.2": "STD 98"
+  "STD 99, Section 9.3": "STD 99"
