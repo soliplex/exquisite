@@ -1,5 +1,8 @@
 name: sp800-2020
 cases:
+# Not re-cited: rank 1 at search limit 5; rank 2 at top-K 30 is a depth
+# artifact (#39).  SP 800-39's chunk is a lexical near miss (no list of
+# steps); `haiku-rag ask` cites only SP 800-30.
 - name: risk-assessment-steps
   inputs: What are the steps of a risk assessment?
   metadata:
@@ -10,6 +13,8 @@ cases:
   expected_output: >-
     Prepare for the assessment; conduct the assessment; communicate
     the results; maintain the assessment.
+# #35 candidate: SP 800-30 Rev. 1, Section 2.1 (the former citation)
+# summarizes these tiers from SP 800-39.
 - name: risk-management-tiers
   inputs: At which tiers does an organization manage information security risk?
   metadata:
@@ -58,6 +63,8 @@ cases:
     reference: NIST SP 800-61 Rev. 2, Section 3.4.3
   expected_output: >-
     Three years, under General Records Schedule (GRS) 24.
+# Not re-cited: rank 1 at search limit 5; rank 2 (behind SP 800-18 Rev. 1)
+# at top-K 30 is a depth artifact (#39).
 - name: control-family-count
   inputs: Into how many families are the security controls organized?
   metadata:
@@ -77,6 +84,8 @@ cases:
   expected_output: >-
     There are baselines for low-impact, moderate-impact, and high-impact
     information systems.
+# Not re-cited: rank 1 at search limit 5; rank 2 (behind SP 800-53A Rev. 4)
+# at top-K 30 is a depth artifact (#39).
 - name: account-management-control
   inputs: Which control covers account management?
   metadata:
@@ -135,6 +144,8 @@ cases:
   expected_output: >-
     At least once per 12 hours during an extended session, and after
     any period of inactivity lasting 30 minutes or longer.
+# #35 candidate: SP 800-60 Vol. 1 Rev. 1, Section 3.1.1 (the former
+# citation) also answers, and outranks FIPS 199 at search limit 5.
 - name: impact-levels
   inputs: >-
     What levels of potential impact are used to categorize information and
@@ -166,6 +177,8 @@ cases:
     type: qa
     reference: FIPS 199, Section 3
   expected_output: Confidentiality, integrity, and availability.
+# #35 candidate: SP 800-60 Vol. 1 Rev. 1, SP 800-37 Rev. 2 and SP 800-53
+# Rev. 4 restate the high-water mark, and outrank FIPS 199.
 - name: aggregate-security-categorization
   inputs: >-
     How are security categorizations aggregated from components of an
@@ -178,6 +191,8 @@ cases:
   expected_output: >-
     The aggregate value for each security objective is the highest
     value assigned for that objective in any component's categorization.
+# #35 candidate: SP 800-53A Rev. 4 and SP 800-39 quote the same OMB A-130
+# definition word for word.
 - name: adequate-security
   inputs: What does it mean for an information system to have adequate security?
   metadata:
@@ -272,6 +287,9 @@ cases:
     the support functions needed to conduct government operations (support
     delivery of services); the resource management functions that support all
     areas of the government's business (management of government resources)
+# SP 800-63-3 contradicts itself: its executive summary (2020 errata) lets
+# AAL1 be single- or multifactor; Chapter 4 and Section 5 say single-factor.
+# The expected answer follows Chapter 4, the cited section.
 - name: authentication-process-strength-levels
   inputs: >-
     What labels and their corresponding requirements are used to describe
@@ -345,6 +363,8 @@ cases:
   expected_output: >-
     Agent-based patch management, agentless scanning, and passive network
     monitoring
+# Ranks behind SP 800-34 Rev. 1, which requires annual review of contingency
+# plans: a different plan, so a near miss, not a #35 candidate.
 - name: security-plan-review-cadence
   inputs: How often should an information systems security plan be reviewed?
   metadata:
