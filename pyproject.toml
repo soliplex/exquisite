@@ -33,7 +33,7 @@ classifiers = [
     "Topic :: Text Processing :: Indexing",
 ]
 dependencies = [
-    "haiku-rag-slim >= 0.89, < 0.93",
+    "haiku-rag-slim >= 0.93, < 0.94",
     "pydantic-evals >= 2.54.0, < 2.55",
     "pyyaml",
 ]
