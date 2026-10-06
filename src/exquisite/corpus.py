@@ -31,9 +31,11 @@ reading the directory, not the linkage.
 """
 
 import dataclasses
+import json
 import pathlib
 import typing
 
+import yaml
 from pydantic_evals import dataset as pe_dataset
 
 PRUNED_SUFFIX = "_pruned"
@@ -48,19 +50,98 @@ QuestionDataset = pe_dataset.Dataset[str, str, dict[str, typing.Any]]
 QuestionCase = pe_dataset.Case[str, str, dict[str, typing.Any]]
 
 
-class QuestionHasNoMetadata(ValueError):
-    """A question without metadata cannot be bound"""
+class InvalidQuestionSet(ValueError):
+    """Questions that are missing metadata, or can't be told apart.
 
-    def __init__(
-        self,
-        qs_path: pathlib.Path,
-        index: int,
-        question: QuestionCase,
-    ):
+    Every problem in the set is reported at once, so fixing them doesn't take
+    one run per problem.  A copied question, for one, keeps its original's
+    ``metadata.uuid``, and anything keyed by it then silently conflates the
+    two:  `check-retrieval` scores both against one of their searches.
+
+    A question is named by its ``name``;  one without a name, by its position
+    in the file (``#3``), which is not its ``question_number``.
+    """
+
+    def __init__(self, qs_path: pathlib.Path, problems: list[str]):
         self.qs_path = qs_path
-        self.index = index
-        self.question = question
-        super().__init__(f"question {index} in file {qs_path} has no metadata")
+        self.problems = problems
+        listed = "".join(f"\n  {problem}" for problem in problems)
+        super().__init__(f"{qs_path}: {len(problems)} problem(s){listed}")
+
+
+#: Metadata that identifies one question, so must not repeat within a set.
+UNIQUE_METADATA = ("uuid", "question_number")
+
+
+def _label(index: int, case: dict) -> str:
+    return case.get("name") or f"#{index}"
+
+
+def _value(value: typing.Any) -> str:
+    """A value for comparison:  surrounding whitespace doesn't count."""
+    return str(value or "").strip()
+
+
+def question_set_problems(cases: list) -> list[str]:
+    """What's wrong with ``cases``, as read from a question set's file.
+
+    Every question needs metadata, and no two may share a ``name`` or a
+    `UNIQUE_METADATA` value.  Missing or empty values are optional, so never
+    repeat anything.  Entries that aren't mappings are left for pydantic-evals
+    to refuse.
+    """
+    problems = []
+    groups: dict[str, dict[str, list[tuple[int, dict]]]] = {
+        field: {} for field in ("name", *UNIQUE_METADATA)
+    }
+
+    for index, case in enumerate(cases, start=1):
+        if not isinstance(case, dict):
+            continue
+
+        metadata = case.get("metadata")
+
+        if not metadata:
+            problems.append(f"no metadata: {_label(index, case)}")
+
+        values = {"name": _value(case.get("name"))}
+
+        if isinstance(metadata, dict):
+            for field in UNIQUE_METADATA:
+                values[field] = _value(metadata.get(field))
+
+        for field, value in values.items():
+            if value:
+                groups[field].setdefault(value, []).append((index, case))
+
+    for field, found in groups.items():
+        for value, questions in found.items():
+            if len(questions) < 2:
+                continue
+
+            if field == "name":
+                listed = ", ".join(f"#{index}" for index, _ in questions)
+                problems.append(f"duplicate name {value!r}: {listed}")
+            else:
+                listed = ", ".join(_label(*question) for question in questions)
+                problems.append(
+                    f"duplicate metadata.{field} {value!r}: {listed}"
+                )
+
+    return problems
+
+
+def _read_cases(path: pathlib.Path) -> list:
+    """The raw ``cases`` of a question set's file, or ``[]`` if malformed.
+
+    A malformed file is left for pydantic-evals to refuse, with its own
+    message.
+    """
+    text = path.read_text()
+    data = json.loads(text) if path.suffix == ".json" else yaml.safe_load(text)
+    cases = data.get("cases") if isinstance(data, dict) else None
+
+    return cases if isinstance(cases, list) else []
 
 
 class UnknownQuestionSet(FileNotFoundError):
@@ -137,13 +218,17 @@ class QuestionSet:
 
     @property
     def dataset(self) -> QuestionDataset:
-        ds = QuestionDataset.from_file(self.path)
+        """The set's questions, refusing any `question_set_problems`.
 
-        for index, case in enumerate(ds.cases, start=1):
-            if not case.metadata:
-                raise QuestionHasNoMetadata(self.path, index, case)
+        The file is checked as read, before pydantic-evals loads it:
+        pydantic-evals refuses duplicate names itself, but stops at the first.
+        """
+        problems = question_set_problems(_read_cases(self.path))
 
-        return ds
+        if problems:
+            raise InvalidQuestionSet(self.path, problems)
+
+        return QuestionDataset.from_file(self.path)
 
 
 def question_sets(
