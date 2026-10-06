@@ -374,3 +374,20 @@ cases:
     reference: SP 800-18 Rev. 1, Section 3.16
   expected_output: >-
     At least annually, and updated if appropriate.
+- name: zero-trust-architecture
+  inputs: >-
+    What is the relationship between Zero Trust (ZT) and a Zero Trust
+    Architecture (ZTA)?
+  metadata:
+    uuid: 5e88280d-34ee-4984-8c49-9aca4eb610d5
+    question_number: '36'
+    type: qa
+    reference: SP 800-207, Chapter 2
+  expected_output: >-
+    Zero trust (ZT) provides a collection of concepts and ideas designed to
+    minimize uncertainty in enforcing accurate, least privilege per-request
+    access decisions in information systems and services in the face of a
+    network viewed as compromised. Zero trust architecture (ZTA) is an
+    enterprise's cybersecurity plan that utilizes zero trust concepts and
+    encompasses component relationships, workflow planning, and access
+    policies.
