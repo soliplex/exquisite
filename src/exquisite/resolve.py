@@ -23,7 +23,6 @@ Anything ambiguous or absent is left unresolved with the reason, because those
 are the cases that genuinely need a person.
 """
 
-import json
 import os
 import pathlib
 import urllib.parse
@@ -125,7 +124,7 @@ def resolve_file(
     previous, validated = worksheets.preserved_answers(worksheet_path)
     previous.update(answers)
     question_set = corpus_mod.find_question_set(root, worksheet_path.stem)
-    cases = json.loads(question_set.path.read_text())["cases"]
+    cases = question_set.dataset.cases
 
     worksheet_path.write_text(
         worksheets.render(

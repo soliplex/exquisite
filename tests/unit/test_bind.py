@@ -87,6 +87,14 @@ class TestCheck:
         ]
 
 
+def _make_case(metadata):
+    return corpus_mod.QuestionCase(
+        inputs="Test Input",
+        expected_output="Test Output",
+        metadata=metadata,
+    )
+
+
 class TestBind:
     def test_labels_resolved_cases_and_tallies_the_rest(self):
         corpus = manifest.Corpus(
@@ -118,21 +126,19 @@ class TestBind:
             "apply_keys": {"A 1": "A", "B 1": "B", "C 1": "C", "D 1": "D"},
         }
         cases = [
-            {"metadata": {"reference": "A 1"}},
-            {"metadata": {"reference": "B 1"}},
-            {"metadata": {"reference": "C 1", LABEL: ["stale"]}},
-            {"metadata": {"reference": "D 1"}},
-            {"metadata": {"reference": "[To Be Filled Out]"}},
-            {"metadata": {"reference": "Z 1"}},
-            {},
+            _make_case(metadata={"reference": "A 1"}),
+            _make_case(metadata={"reference": "B 1"}),
+            _make_case(metadata={"reference": "C 1", LABEL: ["stale"]}),
+            _make_case(metadata={"reference": "D 1"}),
+            _make_case(metadata={"reference": "[To Be Filled Out]"}),
+            _make_case(metadata={"reference": "Z 1"}),
         ]
 
         cases, tally = bind.bind(sheet, cases, corpus=corpus)
 
-        assert [case["metadata"].get(LABEL) for case in cases] == [
+        assert [case.metadata.get(LABEL) for case in cases] == [
             ["file:///new/a.pdf"],
             ["file:///new/a.pdf"],
-            None,
             None,
             None,
             None,
@@ -141,7 +147,7 @@ class TestBind:
         assert tally == {
             "labelled": 2,
             "unresolved": 2,
-            "no_reference": 2,
+            "no_reference": 1,
             "unknown_reference": ["Z 1"],
             "unbound": ["'C': c -- not in this ingestion"],
             "changed": ["'B': b"],
@@ -235,16 +241,17 @@ class TestBindFile:
 
     def test_labels_the_set_without_writing_anything(self, data_root, std):
         _builders.worksheet(data_root, "std", "set", WORKSHEET)
-        before = (data_root / "questions" / "set.json").read_text()
+        before = (data_root / "questions" / "set.yaml").read_text()
 
         document, tally = self.bind_file(data_root, std, "set")
 
-        labels = [case["metadata"][LABEL] for case in document["cases"]]
+        labels = [case.metadata[LABEL] for case in document.cases]
+
         assert labels == [["file:///iso.pdf"], ["file:///iso.pdf"]]
         assert tally["labelled"] == 2
-        assert tally["question_set"] == "questions/set.json"
+        assert tally["question_set"] == "questions/set.yaml"
         assert tally["worksheet"] == "corpus/std/worksheet/set.yaml"
-        assert (data_root / "questions" / "set.json").read_text() == before
+        assert (data_root / "questions" / "set.yaml").read_text() == before
 
     def test_a_pruned_set_carries_its_parents_labels_by_uuid(
         self, data_root, std
@@ -253,7 +260,8 @@ class TestBindFile:
 
         document, tally = self.bind_file(data_root, std, "set_pruned")
 
-        labels = [case["metadata"].get(LABEL) for case in document["cases"]]
+        labels = [case.metadata.get(LABEL) for case in document.cases]
+
         assert labels == [["file:///iso.pdf"], None]
         assert (tally["carried"], tally["labelled"]) == (1, 1)
 
@@ -291,8 +299,8 @@ def test_bind_treats_caller_placeholders_as_no_reference(rules, tally):
     sheet = worksheet(documents=[{"name": "a.pdf", "sha256": "h"}])
     corpus = manifest.Corpus(database="std")
 
-    _, found = bind.bind(
-        sheet, [{"metadata": {"reference": "TBD"}}], corpus=corpus, rules=rules
-    )
+    cases = [_make_case({"reference": "TBD"})]
+
+    _, found = bind.bind(sheet, cases, corpus=corpus, rules=rules)
 
     assert {key: found[key] for key in tally} == tally

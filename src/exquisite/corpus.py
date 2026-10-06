@@ -2,8 +2,8 @@
 
 Question sets are canonical and live once, at the top level:
 
-    questions/<corpus_name>.json
-    questions/<corpus_name>_pruned.json
+    questions/<corpus_name>.{yaml,json}
+    questions/<corpus_name>_pruned.{yaml,json}
 
 A corpus holds what varies per corpus -- the manifests of its ingestions, and
 one worksheet per question set it is scored against:
@@ -32,8 +32,35 @@ reading the directory, not the linkage.
 
 import dataclasses
 import pathlib
+import typing
+
+from pydantic_evals import dataset as pe_dataset
 
 PRUNED_SUFFIX = "_pruned"
+
+QUESTION_SET_SUFFIXES = [
+    ".yaml",
+    ".yml",
+    ".json",
+]
+
+QuestionDataset = pe_dataset.Dataset[str, str, dict[str, typing.Any]]
+QuestionCase = pe_dataset.Case[str, str, dict[str, typing.Any]]
+
+
+class QuestionHasNoMetadata(ValueError):
+    """A question without metadata cannot be bound"""
+
+    def __init__(
+        self,
+        qs_path: pathlib.Path,
+        index: int,
+        question: QuestionCase,
+    ):
+        self.qs_path = qs_path
+        self.index = index
+        self.question = question
+        super().__init__(f"question {index} in file {qs_path} has no metadata")
 
 
 class UnknownQuestionSet(FileNotFoundError):
@@ -108,21 +135,36 @@ class QuestionSet:
     def relative(self) -> str:
         return str(self.path.relative_to(self.root))
 
+    @property
+    def dataset(self) -> QuestionDataset:
+        ds = QuestionDataset.from_file(self.path)
+
+        for index, case in enumerate(ds.cases, start=1):
+            if not case.metadata:
+                raise QuestionHasNoMetadata(self.path, index, case)
+
+        return ds
+
 
 def question_sets(
     root: pathlib.Path, *, include_pruned: bool = False
 ) -> list[QuestionSet]:
-    found = [
-        QuestionSet(path, root)
-        for path in sorted((root / "questions").glob("*.json"))
-    ]
+    found = []
+
+    for suffix in QUESTION_SET_SUFFIXES:
+        for path in sorted((root / "questions").glob(f"*{suffix}")):
+            found.append(QuestionSet(path, root))
 
     return [item for item in found if include_pruned or not item.is_pruned]
 
 
 def find_question_set(root: pathlib.Path, name: str) -> QuestionSet:
-    """Locate a set by stem, with or without the ``.json``."""
-    stem = name[:-5] if name.endswith(".json") else name
+    """Locate a set by stem, with or without the suffix."""
+    stem = name
+
+    for suffix in QUESTION_SET_SUFFIXES:
+        if name.endswith(suffix):
+            stem = name[: -len(suffix)]
 
     for item in question_sets(root, include_pruned=True):
         if item.name == stem:

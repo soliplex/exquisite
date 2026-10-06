@@ -1,19 +1,22 @@
 # Question sets
 
 A question set is a [pydantic-evals](https://ai.pydantic.dev/evals/)
-dataset. `exquisite` reads two keys from each case's `metadata`:
+dataset, stored under `questions/` as YAML (`<name>.yaml`) or JSON
+(`<name>.json`). Should both exist for one name, the YAML file is used.
+`exquisite` reads two keys from each case's `metadata`:
 
-```json
-{
-  "cases": [
-    {
-      "inputs": "What does clause 4 of ISO 9001 cover?",
-      "expected_output": "Context of the organization",
-      "metadata": {"uuid": "a1", "reference": "ISO 9001 Sec 4"}
-    }
-  ]
-}
+```yaml
+cases:
+- inputs: What does clause 4 of ISO 9001 cover?
+  expected_output: Context of the organization
+  metadata:
+    uuid: a1
+    reference: ISO 9001 Sec 4
 ```
+
+Every case must have `metadata`: without it there is nothing to tie the
+question to a worksheet, so a set holding such a case is refused when it is
+loaded.
 
 - `reference` is the source citation as written. `exquisite` never modifies
   it: it is the provenance, and what a worksheet is regenerated from when a

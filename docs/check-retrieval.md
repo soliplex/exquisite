@@ -116,7 +116,7 @@ With `--out`, a run that searches saves its results, whatever its outcome:
 ```json
 {
   "format": "exquisite check-retrieval 1",
-  "question_set": "questions/sp800-2020.json",
+  "question_set": "questions/sp800-2020.yaml",
   "corpus": "sp800",
   "ingestion": "sp800-2020",
   "settings": {

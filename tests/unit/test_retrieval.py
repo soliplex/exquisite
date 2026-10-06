@@ -4,6 +4,7 @@ import json
 
 import pytest
 
+from exquisite import corpus as corpus_mod
 from exquisite import manifest
 from exquisite import retrieval
 
@@ -119,8 +120,20 @@ def test_reciprocal_rank_of_the_first_relevant(retrieved, expected):
     assert result == pytest.approx(expected)
 
 
+def _make_case(inputs, name=None, metadata=None):
+    if metadata is None:
+        metadata = {}
+
+    return corpus_mod.QuestionCase(
+        name=name,
+        inputs=inputs,
+        expected_output="Test Output",
+        metadata=metadata,
+    )
+
+
 def test_questions_key_cases_by_uuid_then_name_then_position():
-    cases = [
+    cases_kw = [
         {
             "inputs": "q1",
             "name": "named",
@@ -129,6 +142,7 @@ def test_questions_key_cases_by_uuid_then_name_then_position():
         {"inputs": "q2", "name": "named", "metadata": {}},
         {"inputs": 3},
     ]
+    cases = [_make_case(**case_kw) for case_kw in cases_kw]
 
     result = retrieval.questions(cases)
 

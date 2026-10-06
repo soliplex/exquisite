@@ -1,14 +1,12 @@
 """Build the pieces of a data repository on disk, for tests."""
 
-import json
-
 import yaml
 
 from exquisite import manifest
 
 
-def question_set(root, name, references, *, uuids=None):
-    """Write ``questions/<name>.json`` with one case per reference."""
+def question_set(root, name, references, *, uuids=None, suffix=".yaml"):
+    """Write ``questions/<name><suffix>`` with one case per reference."""
     uuids = uuids or [f"uuid-{i}" for i in range(len(references))]
     cases = [
         {"inputs": f"question {i}", "metadata": {"uuid": uuid, **reference}}
@@ -16,8 +14,8 @@ def question_set(root, name, references, *, uuids=None):
             zip(uuids, [_metadata(text) for text in references], strict=True)
         )
     ]
-    path = root / "questions" / f"{name}.json"
-    path.write_text(json.dumps({"cases": cases}))
+    path = root / "questions" / f"{name}{suffix}"
+    path.write_text(yaml.dump({"cases": cases}))
 
     return path
 

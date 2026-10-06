@@ -383,7 +383,7 @@ def references(
     found = []
 
     for case in cases:
-        text = (case.get("metadata") or {}).get("reference") or ""
+        text = case.metadata.get("reference") or ""
 
         if text.strip() not in rules.not_references:
             found.append(text)
@@ -755,7 +755,7 @@ def refresh(
         for path in corpus_dir.worksheets():
             previous, validated = preserved_answers(path)
             question_set = corpus_mod.find_question_set(root, path.stem)
-            cases = json.loads(question_set.path.read_text())["cases"]
+            cases = question_set.dataset.cases
 
             rendered = functools.partial(
                 render,
@@ -834,7 +834,7 @@ def create(
         raise WorksheetExists(path)
 
     corpus = manifest_mod.load(corpus_dir.ingestion(ingestion))
-    cases = json.loads(question_set.path.read_text())["cases"]
+    cases = question_set.dataset.cases
 
     if not references(cases, rules):
         raise NoReferences(question_set.name)

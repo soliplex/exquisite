@@ -34,6 +34,7 @@ classifiers = [
 ]
 dependencies = [
     "haiku-rag-slim >= 0.89, < 0.93",
+    "pydantic-evals >= 2.54.0, < 2.55",
     "pyyaml",
 ]
 
@@ -146,6 +147,7 @@ banned-from = [
     "pathlib",
     "re",
     "sys",
+    "typing",
     "urllib.parse",
     # third-party
     "haiku.rag.client",
@@ -154,6 +156,7 @@ banned-from = [
     "haiku.rag.store.exceptions",
     "haiku.rag.store.info",
     "haiku.rag.store.models.chunk",
+    "pydantic_evals.dataset",
     "pytest",
     "yaml",
     # this package

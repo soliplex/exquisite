@@ -50,6 +50,7 @@ import json
 import pathlib
 
 from exquisite import bind as bind_mod
+from exquisite import corpus as corpus_mod
 from exquisite import manifest
 
 #: The score:  the reciprocal rank of the first relevant document, which fits
@@ -234,23 +235,19 @@ def load(path: pathlib.Path) -> Run:
     return Run.from_json(data)
 
 
-def case_key(case: dict, index: int) -> str:
+def case_key(case: corpus_mod.QuestionCase, index: int) -> str:
     """A case's identity across runs:  its ``metadata.uuid``, else its name,
     else its position -- which shifts when a question is added before it."""
-    metadata = case.get("metadata") or {}
-
-    return metadata.get("uuid") or case.get("name") or f"Case {index}"
+    return case.metadata.get("uuid") or case.name or f"Case {index}"
 
 
-def questions(cases: list[dict]) -> list[Question]:
+def questions(cases: list[corpus_mod.QuestionCase]) -> list[Question]:
     """The bound question set's cases, as questions to search."""
     return [
         Question(
             key=case_key(case, index),
-            question=str(case["inputs"]),
-            relevant=tuple(
-                (case.get("metadata") or {}).get(bind_mod.LABEL_KEY) or ()
-            ),
+            question=str(case.inputs),
+            relevant=tuple(case.metadata.get(bind_mod.LABEL_KEY) or ()),
         )
         for index, case in enumerate(cases, start=1)
     ]

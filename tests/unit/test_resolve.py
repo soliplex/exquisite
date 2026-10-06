@@ -1,11 +1,10 @@
 """Unit tests for `exquisite.resolve`."""
 
-import json
-
 import _builders
 import pytest
 import yaml
 
+from exquisite import corpus as corpus_mod
 from exquisite import manifest
 from exquisite import resolve
 from exquisite import rules as rules_mod
@@ -121,17 +120,19 @@ def test_prose_references_are_not_its_business(worksheet):
 
 
 def write_worksheet(root, references, documents):
-    _builders.question_set(root, "uris", references)
+    qpath = _builders.question_set(root, "uris", references)
+    qset = corpus_mod.QuestionSet(root=root, path=qpath)
+    cases = qset.dataset.cases
+
     path = _builders.ingestion(root, "std", "std", documents)
     corpus = manifest.Corpus(database="std", documents=documents)
-    cases = json.loads((root / "questions" / "uris.json").read_text())
     text = worksheets.render(
-        question_set="questions/uris.json",
+        question_set="questions/uris.yaml",
         database="std",
         corpus_documents=len(documents),
         substrate="unknown",
         generated="2026-10-01",
-        cases=cases["cases"],
+        cases=cases,
         corpus=corpus,
     )
 

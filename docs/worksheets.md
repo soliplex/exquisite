@@ -29,7 +29,7 @@ The header records what the worksheet was generated from:
 
 ```yaml
 version: 1
-question_set: questions/quality-basics.json
+question_set: questions/quality-basics.yaml
 database: standards
 generated: 2026-10-02
 corpus_documents: 3   # at generation; a mismatch means recheck

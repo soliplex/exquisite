@@ -6,7 +6,6 @@ Roman-numeral volumes, and location words.  These tests pin the
 snapshot and what the rules make of those citations.
 """
 
-import json
 import pathlib
 
 import pytest
@@ -98,15 +97,13 @@ def test_each_snapshot_records_its_date(stem, as_of):
 
 
 def test_every_question_cites_a_designator_the_worksheet_answers(rules):
-    cases = json.loads((DATA / "questions" / "sp800-2020.json").read_text())[
-        "cases"
-    ]
+    question_set = corpus_mod.find_question_set(DATA, "sp800-2020")
 
     answers, _ = worksheets.preserved_answers(WORKSHEETS / "sp800-2020.yaml")
 
     cited = {
-        designators.designator(case["metadata"]["reference"], rules)
-        for case in cases
+        designators.designator(case.metadata["reference"], rules)
+        for case in question_set.dataset.cases
     }
     assert cited == set(answers)
     assert all(answer.get("documents") for answer in answers.values())
@@ -125,9 +122,7 @@ def test_binding_labels_every_question_against_its_snapshot(rules):
     )
 
     uris = {doc.uri for doc in snapshot.documents}
-    labels = [
-        case["metadata"].get(bind.LABEL_KEY) for case in document["cases"]
-    ]
-    assert tally["labelled"] == len(document["cases"])
+    labels = [case.metadata.get(bind.LABEL_KEY) for case in document.cases]
+    assert tally["labelled"] == len(document.cases)
     assert not tally["unbound"]
     assert all(label and set(label) <= uris for label in labels)
