@@ -1,24 +1,32 @@
+#
 # What this ingestion of the corpus is, and where it came from.
 # Generated alongside sp800.csv; the two are a pair.
 #
 # SYNTHETIC:  written by hand, not extracted from a RAG database.  The URIs
 # are shaped like an ingester's; the source URLs are NIST's official ones.
 #
-# The documents were downloaded on 2026-10-02 and 2026-10-04.  NIST adds a
-# one-page withdrawal notice to a publication's PDF when it withdraws it, and
-# serves only that copy afterwards.  For the publications withdrawn since
-# 2020-06-30, the notice page is stripped (the '.as-of-2020-06-30.pdf'
-# files), so their hashes are of the stripped copies, not of the file at
-# their source URL.
+# This ingestion holds the documents curated into it at its 'as_of' date,
+# for a notional agency's security program run under the NIST Risk Management
+# Framework.
 #
-# This ingestion holds the editions current on its 'as_of' date, for an
-# agency's security program run under the NIST Risk Management Framework.
+# The initial document set, downloaded on 2026-10-02 and 2026-10-04, contains
+# several editions which were withdrawn after the initial `as_of` date
+# (2026-06-30). This choice is intentional: accommodating those withdrawals
+# at a curation point after the withdrawal itself is part of the process
+# which 'exquisite' is supposed to model.
+#
+# When a document is withdrawn, NIST adds a one-page withdrawal
+# notice to a publication's PDF, and serves only that copy afterwards.
+#
+# Therefore, for the publications withdrawn since 2020-06-30, we stripped
+# the notice page creating the '.as-of-2020-06-30.pdf' files: the hashes in
+# the CSV file are for the stripped copies, not the files at their source URL.
+#
 database: sp800
-extracted_at: 2026-10-04T00:00:00+00:00
+extracted_at: 2026-10-06T00:00:00+00:00
 
-# The corpus' curation date:  document's here are deliberately chosen as of
-# this date.
-as_of: 2020-06-30
+# Corpus curation date:  documents are deliberately chosen as of this date.
+as_of: 2020-08-31
 
 # Row count in the CSV must match; a mismatch means a truncated extraction.
-documents: 19
+documents: 20
