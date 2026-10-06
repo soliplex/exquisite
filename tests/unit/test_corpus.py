@@ -86,8 +86,10 @@ def test_question_set_dataset_wo_metadata(
 
     qset = corpus.QuestionSet(root=tmp_path, path=qset_file)
 
-    with pytest.raises(corpus.QuestionHasNoMetadata):
+    with pytest.raises(corpus.InvalidQuestionSet) as raised:
         _dset = qset.dataset
+
+    assert raised.value.problems == [f"no metadata: {QUESTION_NAME}"]
 
 
 @pytest.mark.parametrize(
@@ -266,3 +268,142 @@ def test_find_names_the_corpora_it_has(data_root):
 
     assert str(raised.value) == "no corpus 'b'; have a"
     assert (raised.value.name, raised.value.known) == ("b", "a")
+
+
+def _case(name, uuid_=None, number=None):
+    """One question, with whichever identifiers are given."""
+    metadata = {"type": QUESTION_TYPE, "reference": QUESTION_REF}
+
+    if uuid_ is not None:
+        metadata["uuid"] = uuid_
+
+    if number is not None:
+        metadata["question_number"] = number
+
+    found = {
+        "inputs": f"question {name}",
+        "expected_output": QUESTION_EXPECTED,
+        "metadata": metadata,
+    }
+
+    if name is not None:
+        found["name"] = name
+
+    return found
+
+
+def _question_set(tmp_path, cases):
+    path = tmp_path / "test-questions.yaml"
+    path.write_text(yaml.dump({"cases": cases}))
+
+    return corpus.QuestionSet(root=tmp_path, path=path)
+
+
+@pytest.mark.parametrize(
+    "cases, expected",
+    [
+        (
+            [_case("a", "u1", "1"), _case("b", "u2", "2"), _case("c", "u1")],
+            ["duplicate metadata.uuid 'u1': a, c"],
+        ),
+        (
+            # Surrounding whitespace doesn't make a value different.
+            [_case("a", "u1"), _case("b", " u1 ")],
+            ["duplicate metadata.uuid 'u1': a, b"],
+        ),
+        (
+            [_case("a", "u1", "7"), _case("b", "u2", "7")],
+            ["duplicate metadata.question_number '7': a, b"],
+        ),
+        (
+            # Only a question without a name is named by its position.
+            [_case(None, "u1"), _case("b", "u1")],
+            ["duplicate metadata.uuid 'u1': #1, b"],
+        ),
+        (
+            # Questions sharing a name can only be told apart by position.
+            [_case("a", "u1"), _case("b", "u2"), _case("a", "u3")],
+            ["duplicate name 'a': #1, #3"],
+        ),
+        (
+            # Every problem at once, not just the first.
+            [
+                _case("a", "u1", "1"),
+                {"name": "b", "inputs": "no metadata"},
+                _case("a", "u1", "1"),
+                _case("c", "u2", "3"),
+                _case("c", "u2", "4"),
+            ],
+            [
+                "no metadata: b",
+                "duplicate name 'a': #1, #3",
+                "duplicate name 'c': #4, #5",
+                "duplicate metadata.uuid 'u1': a, a",
+                "duplicate metadata.uuid 'u2': c, c",
+                "duplicate metadata.question_number '1': a, a",
+            ],
+        ),
+        (
+            # Missing and empty values are optional, so never repeat.
+            [_case("a"), _case("b", "", ""), _case("c", "u1"), _case("d")],
+            [],
+        ),
+        (
+            # Malformed entries are left for pydantic-evals to refuse.
+            ["not a mapping", {"name": "a", "metadata": "not a mapping"}],
+            [],
+        ),
+    ],
+)
+def test_question_set_problems(cases, expected):
+    result = corpus.question_set_problems(cases)
+
+    assert result == expected
+
+
+def test_question_set_dataset_reports_every_problem(tmp_path):
+    qset = _question_set(
+        tmp_path,
+        [_case("a", "u1"), _case("a", "u1"), {"name": "b", "inputs": "x"}],
+    )
+
+    with pytest.raises(corpus.InvalidQuestionSet) as raised:
+        _dset = qset.dataset
+
+    assert raised.value.qs_path == qset.path
+    assert str(raised.value) == (
+        f"{qset.path}: 3 problem(s)\n"
+        "  no metadata: b\n"
+        "  duplicate name 'a': #1, #2\n"
+        "  duplicate metadata.uuid 'u1': a, a"
+    )
+
+
+def test_question_set_dataset_loads_a_set_without_problems(tmp_path):
+    qset = _question_set(
+        tmp_path,
+        [_case("a"), _case("b", "", ""), _case("c", "u1"), _case("d")],
+    )
+
+    dset = qset.dataset
+
+    assert [case.name for case in dset.cases] == ["a", "b", "c", "d"]
+
+
+@pytest.mark.parametrize(
+    "content",
+    [{"cases": "not a list"}, ["not", "a", "mapping"]],
+)
+def test_question_set_dataset_leaves_malformed_files_to_pydantic_evals(
+    tmp_path, content
+):
+    path = tmp_path / "test-questions.yaml"
+    path.write_text(yaml.dump(content))
+    qset = corpus.QuestionSet(root=tmp_path, path=path)
+
+    with pytest.raises(
+        ValueError, match="does not match the schema"
+    ) as raised:
+        _dset = qset.dataset
+
+    assert not isinstance(raised.value, corpus.InvalidQuestionSet)
