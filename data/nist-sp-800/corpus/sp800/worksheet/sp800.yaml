@@ -1,5 +1,5 @@
 # Map document designators (as cited in the question set) to document URIs
-# (as stored in the `sp800-2020` corpus).  Fill in `documents:` on each entry.
+# (as stored in the `sp800` corpus).  Fill in `documents:` on each entry.
 #
 # Entries are grouped by a "collapsed key" -- the designator with
 # "Vol 3" read as "v3", "Supplement" as "supp", and all
@@ -13,9 +13,9 @@
 # A `provisional:` line marks an answer made from a trusted identifier match;
 # check it, then delete the line.  `bind` refuses the worksheet until then.
 version: 1
-question_set: questions/sp800-2020.yaml
-database: sp800-2020
-generated: 2026-10-05
+question_set: questions/sp800.yaml
+database: sp800
+generated: 2026-10-06
 corpus_documents: 19   # at generation; a mismatch means recheck
 substrate: unknown   # embedder/chunking digest of the ingestion
 rules: dc696a72e664   # normalization v1, built-ins + caller rules
@@ -206,7 +206,7 @@ designators:
 # Generated below this line -- do not edit.
 # ---------------------------------------------------------------------------
 
-# Documents in `sp800-2020` resembling each designator, keyed by the same
+# Documents in `sp800` resembling each designator, keyed by the same
 # collapsed key as above.  ADVISORY ONLY -- nothing here is an answer, and
 # lists are alphabetical, not ranked, deliberately:  the closest-looking
 # match is often a notice amending the publication, not the publication.

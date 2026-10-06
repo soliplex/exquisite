@@ -1,9 +1,9 @@
-"""The NIST SP 800 example corpus (`data/nist-sp-800`).
+"""The NIST SP 800 example corpus (`data/nist-sp`).
 
-A snapshot of a subset of the SP 800 series, and the rules for how its
+A curated subset of the SP 800 series, and the rules for how its
 publications are cited:  spelling variants, revisions written several ways,
 Roman-numeral volumes, and location words.  These tests pin the
-snapshot and what the rules make of those citations.
+corpus and what the rules make of those citations.
 """
 
 import pathlib
@@ -30,7 +30,7 @@ def rules():
 @pytest.mark.parametrize(
     "stem, count",
     [
-        ("sp800-2020", 19),
+        ("sp800", 19),
     ],
 )
 def test_manifests_load_with_trusted_identifiers(stem, count):
@@ -87,19 +87,19 @@ def test_relations(rules, key, identifier, expected):
 @pytest.mark.parametrize(
     "stem, as_of",
     [
-        ("sp800-2020", "2020-06-30"),
+        ("sp800", "2020-06-30"),
     ],
 )
-def test_each_snapshot_records_its_date(stem, as_of):
+def test_corpus_records_its_date(stem, as_of):
     loaded = manifest.load(INGESTIONS / f"{stem}.csv")
 
     assert str(loaded.about["as_of"]) == as_of
 
 
 def test_every_question_cites_a_designator_the_worksheet_answers(rules):
-    question_set = corpus_mod.find_question_set(DATA, "sp800-2020")
+    question_set = corpus_mod.find_question_set(DATA, "sp800")
 
-    answers, _ = worksheets.preserved_answers(WORKSHEETS / "sp800-2020.yaml")
+    answers, _ = worksheets.preserved_answers(WORKSHEETS / "sp800.yaml")
 
     cited = {
         designators.designator(case.metadata["reference"], rules)
@@ -109,19 +109,19 @@ def test_every_question_cites_a_designator_the_worksheet_answers(rules):
     assert all(answer.get("documents") for answer in answers.values())
 
 
-def test_binding_labels_every_question_against_its_snapshot(rules):
+def test_binding_labels_every_question_against_its_corpus(rules):
     corpus_dir = corpus_mod.find(DATA, "sp800")
-    snapshot = manifest.load(corpus_dir.ingestion("sp800-2020"))
+    corpus = manifest.load(corpus_dir.ingestion("sp800"))
 
     document, tally = bind.bind_file(
         corpus_dir=corpus_dir,
-        question_set=corpus_mod.find_question_set(DATA, "sp800-2020"),
+        question_set=corpus_mod.find_question_set(DATA, "sp800"),
         root=DATA,
-        corpus=snapshot,
+        corpus=corpus,
         rules=rules,
     )
 
-    uris = {doc.uri for doc in snapshot.documents}
+    uris = {doc.uri for doc in corpus.documents}
     labels = [case.metadata.get(bind.LABEL_KEY) for case in document.cases]
     assert tally["labelled"] == len(document.cases)
     assert not tally["unbound"]

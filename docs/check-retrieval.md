@@ -15,8 +15,8 @@ document came back, not that the chunk holds the answer.
 
 ```bash
 exquisite check-retrieval --root data/nist-sp-800 --corpus sp800 \
-    --questions sp800-2020 --ingestion sp800-2020 \
-    --db sp800-2020.lancedb --config haiku.rag.yaml
+    --questions sp800 --ingestion sp800 \
+    --db sp800.lancedb --config haiku.rag.yaml
 ```
 
 - `--db` is the database to search: a local path, or a URI haiku-rag
@@ -116,9 +116,9 @@ With `--out`, a run that searches saves its results, whatever its outcome:
 ```json
 {
   "format": "exquisite check-retrieval 1",
-  "question_set": "questions/sp800-2020.yaml",
+  "question_set": "questions/sp800.yaml",
   "corpus": "sp800",
-  "ingestion": "sp800-2020",
+  "ingestion": "sp800",
   "settings": {
     "embedder": "vllm:nvidia/llama-nemotron-embed-vl-1b-v2 (dim 2048)",
     "reranker": null,
@@ -126,7 +126,7 @@ With `--out`, a run that searches saves its results, whatever its outcome:
     "config_hash": "5f8a9bfe…"
   },
   "database": {
-    "location": "sp800-2020.lancedb",
+    "location": "sp800.lancedb",
     "embedder": "vllm:nvidia/llama-nemotron-embed-vl-1b-v2 (dim 2048)",
     "documents": 8,
     "chunks": 5502,

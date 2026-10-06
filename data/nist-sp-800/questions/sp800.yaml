@@ -1,4 +1,4 @@
-name: sp800-2020
+name: sp800
 cases:
 # Not re-cited: rank 1 at search limit 5; rank 2 at top-K 30 is a depth
 # artifact (#39).  SP 800-39's chunk is a lexical near miss (no list of
