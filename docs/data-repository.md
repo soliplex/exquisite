@@ -7,8 +7,8 @@ this:
 ```text
 exquisite.yaml                     normalization rules (optional)
 questions/
-  quality-basics.json              a question set
-  quality-basics_pruned.json       a subset of it
+  quality-basics.yaml              a question set
+  quality-basics_pruned.yaml       a subset of it
 corpus/
   standards/                       one corpus
     ingestion/

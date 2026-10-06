@@ -26,7 +26,6 @@ match, and marked with a ``provisional:`` line -- counts as unreviewed too.
 Confirming it is deleting that line.
 """
 
-import json
 import pathlib
 
 import yaml
@@ -125,11 +124,11 @@ def check(worksheet: dict) -> list[str]:
 
 def bind(
     worksheet: dict,
-    cases: list[dict],
+    cases: list[corpus_mod.QuestionCase],
     *,
     corpus: manifest.Corpus,
     rules: rules_mod.Rules = rules_mod.BUILTIN_RULES,
-) -> tuple[list[dict], dict]:
+) -> tuple[list[corpus_mod.QuestionCase], dict]:
     """Return ``(cases, tally)`` with ``relevant_uris`` written where resolved.
 
     Each worksheet document is resolved against ``corpus`` by sha256, falling
@@ -179,27 +178,26 @@ def bind(
         bound[entry["designator"]] = uris
 
     for case in cases:
-        metadata = case.setdefault("metadata", {})
-        reference = (metadata.get("reference") or "").strip()
+        reference = (case.metadata.get("reference") or "").strip()
 
         if reference in rules.not_references:
             tally["no_reference"] += 1
             continue
 
-        designator = keys.get(metadata["reference"])
+        designator = keys.get(reference)
 
         if designator is None:
-            tally["unknown_reference"].append(metadata["reference"])
+            tally["unknown_reference"].append(reference)
             continue
 
         uris = bound.get(designator) or []
 
         if not uris:
-            metadata.pop(LABEL_KEY, None)
+            case.metadata.pop(LABEL_KEY, None)
             tally["unresolved"] += 1
             continue
 
-        metadata[LABEL_KEY] = list(uris)
+        case.metadata[LABEL_KEY] = list(uris)
         tally["labelled"] += 1
 
     tally["unbound"] = sorted(set(tally["unbound"]))
@@ -244,7 +242,7 @@ def bind_file(
     root: pathlib.Path,
     corpus: manifest.Corpus,
     rules: rules_mod.Rules = rules_mod.BUILTIN_RULES,
-) -> tuple[dict, dict]:
+) -> tuple[corpus_mod.QuestionDataset, dict]:
     """Bind one question set to one ingestion:  ``(document, tally)``.
 
     Nothing is written here.  The canonical question set holds no
@@ -264,16 +262,14 @@ def bind_file(
             + "\n  ".join(problems)
         )
 
-    document = json.loads(question_set.path.read_text())
+    document = question_set.dataset
 
     if parent is None:
-        _, tally = bind(
-            worksheet, document["cases"], corpus=corpus, rules=rules
-        )
+        _, tally = bind(worksheet, document.cases, corpus=corpus, rules=rules)
     else:
-        source = json.loads(parent.path.read_text())
-        _, tally = bind(worksheet, source["cases"], corpus=corpus, rules=rules)
-        tally["carried"] = _carry_labels(source["cases"], document["cases"])
+        source = parent.dataset
+        _, tally = bind(worksheet, source.cases, corpus=corpus, rules=rules)
+        tally["carried"] = _carry_labels(source.cases, document.cases)
         tally["labelled"] = tally["carried"]
 
     tally["question_set"] = question_set.relative
@@ -282,24 +278,24 @@ def bind_file(
     return document, tally
 
 
-def _carry_labels(parent: list[dict], derived: list[dict]) -> int:
+def _carry_labels(
+    parent: list[corpus_mod.QuestionCase],
+    derived: list[corpus_mod.QuestionCase],
+) -> int:
     """Copy parent cases' `relevant_uris` onto their derived counterparts."""
     labels = {
-        (case.get("metadata") or {}).get("uuid"): (
-            case.get("metadata") or {}
-        ).get(LABEL_KEY)
+        case.metadata.get("uuid"): case.metadata.get(LABEL_KEY)
         for case in parent
     }
     carried = 0
 
     for case in derived:
-        metadata = case.setdefault("metadata", {})
-        found = labels.get(metadata.get("uuid"))
+        found = labels.get(case.metadata.get("uuid"))
 
         if found:
-            metadata[LABEL_KEY] = list(found)
+            case.metadata[LABEL_KEY] = list(found)
             carried += 1
         else:
-            metadata.pop(LABEL_KEY, None)
+            case.metadata.pop(LABEL_KEY, None)
 
     return carried

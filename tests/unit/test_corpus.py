@@ -1,10 +1,48 @@
 """Unit tests for `exquisite.corpus`."""
 
+import json
+import uuid
+
 import _builders
 import pytest
+import yaml
 
 from exquisite import corpus
 from exquisite import manifest
+
+QUESTION_NAME = "test-question"
+QUESTION_INPUTS = "What is the airspeed velocity of an unladen sparrow?"
+QUESTION_EXPECTED = "African or European?"
+QUESTION_UUID = str(uuid.uuid4())
+QUESTION_NUMBER = "123"
+QUESTION_TYPE = "qa"
+QUESTION_REF = "Ency. Brit. 1893 Vol Aa - An, 'African Swallow'"
+QUESTION_SET = {
+    "$schema": "https://schema.pydantic.dev/evals/dataset.json",
+    "cases": [
+        {
+            "name": QUESTION_NAME,
+            "inputs": QUESTION_INPUTS,
+            "expected_output": QUESTION_EXPECTED,
+            "metadata": {
+                "uuid": QUESTION_UUID,
+                "question_number": QUESTION_NUMBER,
+                "type": QUESTION_TYPE,
+                "reference": QUESTION_REF,
+            },
+        },
+    ],
+}
+WO_METADATA_QUESTION_SET = {
+    "$schema": "https://schema.pydantic.dev/evals/dataset.json",
+    "cases": [
+        {
+            "name": QUESTION_NAME,
+            "inputs": QUESTION_INPUTS,
+            "expected_output": QUESTION_EXPECTED,
+        },
+    ],
+}
 
 
 @pytest.mark.parametrize(
@@ -14,16 +52,76 @@ from exquisite import manifest
         ("iso-9001_pruned", True),
     ],
 )
+@pytest.mark.parametrize("suffix", [".yaml", ".json"])
 def test_question_set_names_itself_and_knows_if_pruned(
-    data_root, stem, is_pruned
+    data_root,
+    stem,
+    is_pruned,
+    suffix,
 ):
-    path = data_root / "questions" / f"{stem}.json"
+    path = data_root / "questions" / f"{stem}{suffix}"
 
     found = corpus.QuestionSet(path, data_root)
 
     assert found.name == stem
     assert found.is_pruned is is_pruned
-    assert found.relative == f"questions/{stem}.json"
+    assert found.relative == f"questions/{stem}{suffix}"
+
+
+@pytest.mark.parametrize(
+    "filename, dumper",
+    [
+        ("test-questions.json", json.dumps),
+        ("test-questions.yaml", yaml.dump),
+    ],
+)
+def test_question_set_dataset_wo_metadata(
+    tmp_path,
+    filename,
+    dumper,
+):
+    to_dump = dumper(WO_METADATA_QUESTION_SET)
+    qset_file = tmp_path / filename
+    qset_file.write_text(to_dump)
+
+    qset = corpus.QuestionSet(root=tmp_path, path=qset_file)
+
+    with pytest.raises(corpus.QuestionHasNoMetadata):
+        _dset = qset.dataset
+
+
+@pytest.mark.parametrize(
+    "filename, dumper",
+    [
+        ("test-questions.json", json.dumps),
+        ("test-questions.yaml", yaml.dump),
+        ("test-questions.yml", yaml.dump),
+    ],
+)
+def test_question_set_dataset(
+    tmp_path,
+    filename,
+    dumper,
+):
+    to_dump = dumper(QUESTION_SET)
+    qset_file = tmp_path / filename
+    qset_file.write_text(to_dump)
+    qset = corpus.QuestionSet(root=tmp_path, path=qset_file)
+
+    dset = qset.dataset
+
+    assert isinstance(dset, corpus.QuestionDataset)
+
+    assert dset.name == "test-questions"
+
+    (case,) = dset.cases
+    assert case.name == QUESTION_NAME
+    assert case.inputs == QUESTION_INPUTS
+    assert case.expected_output == QUESTION_EXPECTED
+    assert case.metadata["uuid"] == QUESTION_UUID
+    assert case.metadata["question_number"] == QUESTION_NUMBER
+    assert case.metadata["type"] == QUESTION_TYPE
+    assert case.metadata["reference"] == QUESTION_REF
 
 
 @pytest.mark.parametrize(
@@ -33,18 +131,30 @@ def test_question_set_names_itself_and_knows_if_pruned(
         (True, ["a", "a_pruned"]),
     ],
 )
+@pytest.mark.parametrize("suffix", [".yaml", ".yml"])
 def test_question_sets_leave_out_pruned_ones_unless_asked(
-    data_root, include_pruned, expected
+    data_root,
+    suffix,
+    include_pruned,
+    expected,
 ):
-    _builders.question_set(data_root, "a", [])
-    _builders.question_set(data_root, "a_pruned", [])
+    _builders.question_set(data_root, "a", [], suffix=suffix)
+    _builders.question_set(data_root, "a_pruned", [], suffix=suffix)
 
     found = corpus.question_sets(data_root, include_pruned=include_pruned)
 
     assert [item.name for item in found] == expected
 
 
-@pytest.mark.parametrize("name", ["a_pruned", "a_pruned.json"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "a_pruned",
+        "a_pruned.yaml",
+        "a_pruned.yml",
+        "a_pruned.json",
+    ],
+)
 def test_find_question_set_with_or_without_the_suffix(data_root, name):
     _builders.question_set(data_root, "a", [])
     _builders.question_set(data_root, "a_pruned", [])

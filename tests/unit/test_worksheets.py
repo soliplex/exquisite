@@ -29,12 +29,19 @@ def make_corpus(*docs):
 
 
 def make_cases(*references):
-    return [{"metadata": {"reference": text}} for text in references]
+    return [
+        corpus_mod.QuestionCase(
+            inputs=f"Input {i_ref}",
+            expected_output=f"Output {i_ref}",
+            metadata={"reference": reference},
+        )
+        for i_ref, reference in enumerate(references)
+    ]
 
 
 def render(corpus, cases, **kwargs):
     return worksheets.render(
-        question_set="questions/set.json",
+        question_set="questions/set.yaml",
         database="corpus",
         corpus_documents=len(corpus.documents),
         substrate="unknown",
@@ -256,7 +263,6 @@ class TestRenderCandidates:
         cases = [
             *make_cases("IEC 61508 Sec 1", "IEC-61508 Sec 2"),
             *make_cases("NIST SP 800-30", "ISO 9001", "[To Be Filled Out]"),
-            {},
         ]
 
         return render(corpus, cases)

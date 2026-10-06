@@ -2,7 +2,6 @@
 
 import argparse
 import datetime
-import json
 import os
 import pathlib
 import sys
@@ -190,7 +189,7 @@ def _bind(args: argparse.Namespace) -> int:
 
     failed = _bind_problems(tally)
 
-    text = json.dumps(document, indent=2, ensure_ascii=False) + "\n"
+    text = document.model_dump_json(indent=2, ensure_ascii=False) + "\n"
 
     if args.out:
         args.out.write_text(text)
@@ -245,7 +244,7 @@ def _check_retrieval(args: argparse.Namespace) -> int:
         return 1
 
     _bind_problems(tally)
-    asked = retrieval.questions(document["cases"])
+    asked = retrieval.questions(document.cases)
     eligible = [question for question in asked if question.relevant]
     config, displaced = search.for_path(search.load_config(args.config))
 

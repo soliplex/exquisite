@@ -380,7 +380,7 @@ def test_check_retrieval_passes_and_saves_the_run(monkeypatch, capsys, bound):
     # Binding's problems are reported, and leave their question ineligible.
     assert captured.err == "'IEC 61508': iec.pdf -- not in this ingestion\n"
     assert fake.searched == [("db.lancedb", ["uuid-0"], 5)]
-    assert saved.question_set == "questions/set.json"
+    assert saved.question_set == "questions/set.yaml"
     assert saved.settings == {**SETTINGS, "top_k": 5}
     retrieved = [case.retrieved for case in saved.cases]
     assert retrieved == [["file:///iso.pdf"], []]
