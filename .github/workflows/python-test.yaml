@@ -44,7 +44,7 @@ jobs:
         include:
           - os: ubuntu-latest
             python-version: "3.13"
-            haiku-rag: "0.89.0"
+            haiku-rag: "0.93.0"
     steps:
       - uses: actions/checkout@v6
 
