@@ -1,10 +1,11 @@
 # NIST SP 800 example corpus
 
-A small data repository holding a dated snapshot of the NIST publications as
+A small data repository holding a curated subset of the NIST publications as
 they might be used by an agency's security program, run under the
 Risk Management Framework (RMF).
 
-Initially, the snapshot consists of document editions current on 2020-06-30.
+Initially, the corpus consists of document editions current on 2020-06-30,
+with the question set matching.
 
 This corpus is not meant to cover the entire SP 800 series.
 
@@ -13,28 +14,28 @@ See:
 - [#3](https://github.com/soliplex/exquisite/issues/3)
 - [#31](https://github.com/soliplex/exquisite/issues/31)
 
-Run `exquisite` against it with `--root`, naming the snapshot:
+Run `exquisite` against it with `--root`, naming the ingestion:
 
 ```bash
-uv run exquisite refresh-worksheets --root data/nist-sp-800 --ingestion sp800-2020
+uv run exquisite refresh-worksheets --root data/nist-sp-800 --ingestion sp800
 ```
 
-`tests/unit/test_data_nist_sp_800.py` pins the snapshot, and what the rules
+`tests/unit/test_data_nist_sp_800.py` pins the ingestion, and what the rules
 make of NIST citations.
 
 ## Contents
 
 ```text
-exquisite.yaml                     normalization rules for NIST spellings
+exquisite.yaml                normalization rules for NIST spellings
 corpus/sp800/
-  ingestion/sp800-2020.{csv,yaml}  editions current on 2020-06-30
-  worksheet/sp800-2020.yaml        map citations to documents
-questions/sp800-2020.json          16 questions, as might be asked in mid-2020
+  ingestion/sp800.{csv,yaml}  curated subset
+  worksheet/sp800.yaml        map citations to documents
+questions/sp800.yaml          Questions, as might be asked by the RMF team
 ```
 
-The question set is written against the 2020 snapshot: each question cites
+The question set is written against the 2020 ingestion: each question cites
 an edition current then, and every question binds to a document in that
-snapshot. The questions are numbered as first written: 11 and 12 moved to the
+ingestion. The questions are numbered as first written: 11 and 12 moved to the
 separate corpus line ([#29](https://github.com/soliplex/exquisite/issues/29)),
 and 19 and 20 left with SP 800-57, which issue #31 dropped as extraneous
 to the purpose of the corpus.
@@ -46,8 +47,8 @@ and 2026-10-04. The documents themselves are not committed: the manifest
 records each one's official URL as `source_url`, and the `sha256` of the file
 ingested.
 
-The snapshot holds the documents current on its `as_of` date, recorded in
-its sidecar. Their status today:
+The ingestion holds the documents curated into the corpus on its `as_of` date,
+recorded in its sidecar. Their status today:
 
 | Publication | Published | Status |
 | --- | --- | --- |
@@ -78,10 +79,10 @@ form the foundation for the RMF.
 
 When NIST withdraws a publication, it adds a one-page withdrawal notice to
 the front of its PDF, and serves only that copy afterwards. The notice
-would be anachronistic in a 2020 snapshot, so for the seven publications
-withdrawn and stamped since, the snapshot holds a copy with that page removed
-(`<file>.as-of-2020-06-30.pdf`); its text is otherwise identical. Their
-`sha256` is of the stripped copy, so it differs from that of the file at
+would be anachronistic for the initial mid-2020 ingestion, so for the seven
+publications withdrawn and stamped since, the corpus holds a copy with that
+page removed (`<file>.as-of-2020-06-30.pdf`); its text is otherwise identical.
+Their `sha256` is of the stripped copy, so it differs from that of the file at
 their `source_url`. SP 800-18 Rev. 1 is withdrawn but not yet stamped.
 
 The publication dates come from NIST's CSRC pages; the manifests do not
@@ -98,9 +99,9 @@ However, the hashes and source URLs are real. Every identifier is recorded as
 
 ## What the rules handle
 
-`exquisite.yaml` folds the ways the snapshot's publications are cited, and
+`exquisite.yaml` folds the ways the corpus' publications are cited, and
 nothing more: spellings that only later editions use will be added with the
-snapshots that hold them.
+ingestion updates that hold them.
 
 Each row is tested against the rules, citation by citation.
 
